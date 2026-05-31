@@ -1,6 +1,4 @@
 node_modules/
 .env
-logs/*.log
-prospects/*.json
-emails/*.json
-logs/monitor-state.json
+.next/
+*.tsbuildinfo

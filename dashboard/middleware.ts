@@ -1,20 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { jwtVerify } from 'jose';
 
-export function middleware(request: NextRequest) {
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this'
+);
+
+async function verifyTokenEdge(token: string) {
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return payload as { userId: string; email: string };
+  } catch {
+    return null;
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const publicPaths = ['/login', '/signup', '/api/auth/login', '/api/auth/signup'];
   if (publicPaths.some(p => pathname.startsWith(p))) {
+    // If already logged in, redirect away from auth pages
+    const token = request.cookies.get('token')?.value;
+    if (token && (pathname === '/login' || pathname === '/signup')) {
+      const session = await verifyTokenEdge(token);
+      if (session) {
+        return NextResponse.redirect(new URL('/', request.url));
+      }
+    }
     return NextResponse.next();
   }
 
+  const token = request.cookies.get('token')?.value;
+
   if (pathname.startsWith('/api/')) {
-    const token = request.cookies.get('token')?.value;
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const session = verifyToken(token);
+    const session = await verifyTokenEdge(token);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -23,11 +45,16 @@ export function middleware(request: NextRequest) {
     return NextResponse.next({ request: { headers } });
   }
 
-  if (pathname === '/' || pathname.startsWith('/prospects') || pathname.startsWith('/campaigns') || pathname.startsWith('/replies') || pathname.startsWith('/settings')) {
-    const token = request.cookies.get('token')?.value;
-    if (!token || !verifyToken(token)) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+  // Dashboard pages - require auth
+  if (!token) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  const session = await verifyTokenEdge(token);
+  if (!session) {
+    const response = NextResponse.redirect(new URL('/login', request.url));
+    response.cookies.set('token', '', { maxAge: 0, path: '/' });
+    return response;
   }
 
   return NextResponse.next();

@@ -1,8 +1,9 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import config from '../config.js';
 import logger from '../utils/logger.js';
 
-const client = new Anthropic({ apiKey: config.anthropic.apiKey });
+const genAI = new GoogleGenerativeAI(config.gemini.apiKey);
+const model = genAI.getGenerativeModel({ model: config.gemini.model });
 
 async function generateEmail({ prospect, template }) {
   const prompt = `Write a personalized 100-word cold email to ${prospect.firstName} at ${prospect.company}.
@@ -22,13 +23,9 @@ Requirements:
 
 Return JSON: {"subject": "...", "body": "..."}`;
 
-  const response = await client.messages.create({
-    model: config.anthropic.model,
-    max_tokens: config.anthropic.maxTokens,
-    messages: [{ role: 'user', content: prompt }]
-  });
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
 
-  const text = response.content[0].text;
   try {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('No JSON found in response');
@@ -55,13 +52,9 @@ Categories:
 
 Return JSON: {"classification": "POSITIVE|NEUTRAL|NEGATIVE|UNSUBSCRIBE", "confidence": 0.0-1.0, "request": "extracted request or null", "hasQuestion": true/false}`;
 
-  const response = await client.messages.create({
-    model: config.anthropic.model,
-    max_tokens: 200,
-    messages: [{ role: 'user', content: prompt }]
-  });
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
 
-  const text = response.content[0].text;
   try {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('No JSON found in response');
@@ -94,13 +87,8 @@ Rules:
 
 Return only the reply body text, no subject line needed.`;
 
-  const response = await client.messages.create({
-    model: config.anthropic.model,
-    max_tokens: 300,
-    messages: [{ role: 'user', content: prompt }]
-  });
-
-  return response.content[0].text.trim();
+  const result = await model.generateContent(prompt);
+  return result.response.text().trim();
 }
 
 export { generateEmail, classifyReply, generateReply };

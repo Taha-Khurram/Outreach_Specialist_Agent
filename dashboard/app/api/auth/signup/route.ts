@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       company: company || '',
     });
 
-    const token = generateToken({ userId: user._id.toString(), email: user.email });
+    const token = await generateToken({ userId: user._id.toString(), email: user.email });
 
     const response = NextResponse.json(
       { user: { id: user._id, name: user.name, email: user.email, company: user.company } },
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch (error: any) {
+    console.error('Signup error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

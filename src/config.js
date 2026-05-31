@@ -23,8 +23,8 @@ export default {
     refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
     sheetId: process.env.GOOGLE_SHEET_ID
   },
-  anthropic: {
-    apiKey: process.env.ANTHROPIC_API_KEY,
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY,
     ...defaultConfig.ai
   },
   email: {

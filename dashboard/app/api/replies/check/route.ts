@@ -4,7 +4,7 @@ import { Settings } from '@/models/Settings';
 import { Prospect } from '@/models/Prospect';
 import { Interaction } from '@/models/Interaction';
 import { Campaign } from '@/models/Campaign';
-import { getUnreadReplies, markAsRead, replyToThread } from '@/lib/gmail';
+import { getUnreadReplies, markAsRead, replyToThread, sendEmail } from '@/lib/gmail';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -70,6 +70,17 @@ Sound human and conversational. No subject line needed - just the reply body.`;
 
   const result = await model.generateContent(prompt);
   return result.response.text();
+}
+
+async function sendNotificationEmail(gmailAuth: any, senderEmail: string, prospect: any, classification: any, msg: any) {
+  await sendEmail({
+    to: senderEmail,
+    subject: `🎯 Positive Reply: ${prospect.firstName} ${prospect.lastName} (${prospect.company})`,
+    body: `${prospect.firstName} ${prospect.lastName} (${prospect.title} at ${prospect.company}) sent a positive reply!\n\nSubject: ${msg.subject}\n\nTheir message:\n${msg.body.substring(0, 500)}\n\nConfidence: ${Math.round(classification.confidence * 100)}%\n\nLog into your dashboard to follow up.`,
+    senderEmail,
+    senderName: 'Outreach Agent',
+    ...gmailAuth,
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -163,6 +174,12 @@ export async function POST(req: NextRequest) {
         { userId, 'prospects.prospectId': prospect._id, status: 'active' },
         { $set: { 'prospects.$.status': 'replied' }, $inc: { 'stats.totalReplies': 1 } }
       );
+
+      if (classification.classification === 'POSITIVE' && senderEmail && gmailAuth.refreshToken) {
+        try {
+          await sendNotificationEmail(gmailAuth, senderEmail, prospect, classification, msg);
+        } catch {}
+      }
 
       const shouldAutoReply =
         classification.confidence >= confidenceThreshold &&

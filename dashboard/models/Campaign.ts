@@ -5,6 +5,7 @@ export interface ICampaignStep {
   subject: string;
   body: string;
   delayDays: number;
+  variants?: { subject: string; body: string; weight: number }[];
 }
 
 export interface ICampaignProspect {
@@ -40,6 +41,11 @@ const CampaignStepSchema = new Schema<ICampaignStep>(
     subject: { type: String, required: true },
     body: { type: String, required: true },
     delayDays: { type: Number, default: 0 },
+    variants: [{
+      subject: { type: String, required: true },
+      body: { type: String, required: true },
+      weight: { type: Number, default: 50 },
+    }],
   },
   { _id: false }
 );

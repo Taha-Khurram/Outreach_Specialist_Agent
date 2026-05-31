@@ -13,6 +13,21 @@ function renderTemplate(template: string, data: Record<string, any>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => data[key] || '');
 }
 
+function pickVariant(step: any): { subject: string; body: string } {
+  if (!step.variants || step.variants.length === 0) {
+    return step;
+  }
+  const totalWeight = step.variants.reduce((sum: number, v: any) => sum + (v.weight || 50), 0) + 50;
+  let rand = Math.random() * totalWeight;
+  rand -= 50;
+  if (rand <= 0) return step;
+  for (const variant of step.variants) {
+    rand -= variant.weight || 50;
+    if (rand <= 0) return variant;
+  }
+  return step;
+}
+
 async function generatePersonalizedEmail(
   geminiApiKey: string,
   step: { subject: string; body: string },
@@ -136,7 +151,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
 
       try {
-        const email = await generatePersonalizedEmail(geminiApiKey, firstStep, prospect);
+        const stepToUse = pickVariant(firstStep);
+        const variantLabel = stepToUse === firstStep ? 'A' : `V${firstStep.variants?.indexOf(stepToUse as any) || 0}`;
+        const email = await generatePersonalizedEmail(geminiApiKey, stepToUse, prospect);
 
         await sendEmail({
           to: prospect.email,
@@ -156,6 +173,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           type: 'email_sent',
           subject: email.subject,
           body: email.body,
+          variant: variantLabel,
+          stepNumber: 1,
         });
 
         await Prospect.updateOne(

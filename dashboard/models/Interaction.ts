@@ -10,6 +10,8 @@ export interface IInteraction extends Document {
   body: string;
   confidence: number;
   autoReplied: boolean;
+  variant?: string;
+  stepNumber?: number;
   createdAt: Date;
 }
 
@@ -31,6 +33,8 @@ const InteractionSchema = new Schema<IInteraction>(
     body: { type: String, default: '' },
     confidence: { type: Number, default: 0 },
     autoReplied: { type: Boolean, default: false },
+    variant: { type: String },
+    stepNumber: { type: Number },
   },
   { timestamps: true }
 );

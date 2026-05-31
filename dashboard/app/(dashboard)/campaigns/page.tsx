@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatusBadge } from '@/components/ui/Badge';
 import {
-  Mail, Plus, Edit2, Trash2, X, Loader2, Play, Pause,
+  Mail, Plus, Edit2, Trash2, X, Loader2, Play, Pause, BarChart3,
 } from 'lucide-react';
 
 interface CampaignStep {
@@ -283,6 +284,9 @@ export default function CampaignsPage() {
                             <Pause className="h-4 w-4" />
                           </button>
                         )}
+                        <a href={`/campaigns/${c._id}`} className="p-1.5 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-colors" title="Analytics">
+                          <BarChart3 className="h-4 w-4" />
+                        </a>
                       </div>
                     </td>
                   </tr>

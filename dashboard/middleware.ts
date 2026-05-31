@@ -19,8 +19,13 @@ export async function middleware(request: NextRequest) {
 
   const publicPaths = ['/login', '/signup', '/api/auth/login', '/api/auth/signup'];
   const cronPaths = ['/api/cron'];
+  const webhookPaths = ['/api/webhooks/'];
 
   if (cronPaths.some(p => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
+
+  if (webhookPaths.some(p => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 

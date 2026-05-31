@@ -4,6 +4,12 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, Search, User, Settings, LogOut, ChevronDown, X, CheckCircle, Mail, MessageSquare } from 'lucide-react';
 
+interface UserData {
+  name: string;
+  email: string;
+  company: string;
+}
+
 interface Notification {
   id: string;
   type: 'reply' | 'meeting' | 'campaign' | 'system';
@@ -20,17 +26,35 @@ const mockNotifications: Notification[] = [
   { id: '4', type: 'system', title: 'Agent check complete', description: 'No new replies found in last scan', time: '5 hours ago', read: true },
 ];
 
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map(part => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+}
+
 export default function Header({ title }: { title: string }) {
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data?.user) setUser(data.user); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -67,6 +91,8 @@ export default function Header({ title }: { title: string }) {
       default: return <Bell className="h-4 w-4 text-gray-500" />;
     }
   }
+
+  const initials = user ? getInitials(user.name) : '??';
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-gray-200/80">
@@ -159,7 +185,7 @@ export default function Header({ title }: { title: string }) {
               className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#468faf] to-[#014f86] flex items-center justify-center">
-                <span className="text-xs font-semibold text-white">AC</span>
+                <span className="text-xs font-semibold text-white">{initials}</span>
               </div>
               <ChevronDown className={`h-3.5 w-3.5 text-gray-500 transition-transform duration-200 ${showProfile ? 'rotate-180' : ''}`} />
             </button>
@@ -168,8 +194,8 @@ export default function Header({ title }: { title: string }) {
             {showProfile && (
               <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden animate-fade-in">
                 <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-semibold text-gray-900">Admin User</p>
-                  <p className="text-xs text-gray-500 mt-0.5">admin@clientflow.com</p>
+                  <p className="text-sm font-semibold text-gray-900">{user?.name || 'User'}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{user?.email || ''}</p>
                 </div>
                 <div className="py-1">
                   <button
@@ -180,7 +206,7 @@ export default function Header({ title }: { title: string }) {
                     Settings
                   </button>
                   <button
-                    onClick={() => { router.push('/settings'); setShowProfile(false); }}
+                    onClick={() => { router.push('/profile'); setShowProfile(false); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     <User className="h-4 w-4 text-gray-400" />

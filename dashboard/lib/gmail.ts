@@ -1,14 +1,36 @@
 import { google } from 'googleapis';
 
-interface SendEmailParams {
+interface GmailAuth {
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
+}
+
+interface SendEmailParams extends GmailAuth {
   to: string;
   subject: string;
   body: string;
   senderEmail: string;
   senderName: string;
-  clientId: string;
-  clientSecret: string;
-  refreshToken: string;
+}
+
+interface ReplyToThreadParams extends GmailAuth {
+  threadId: string;
+  to: string;
+  subject: string;
+  body: string;
+  senderEmail: string;
+  senderName: string;
+}
+
+export interface ParsedMessage {
+  id: string;
+  threadId: string;
+  from: string;
+  to: string;
+  subject: string;
+  body: string;
+  date: string;
 }
 
 function createOAuth2Client(clientId: string, clientSecret: string, refreshToken: string) {
@@ -17,18 +39,20 @@ function createOAuth2Client(clientId: string, clientSecret: string, refreshToken
   return oauth2Client;
 }
 
-function buildRawEmail(from: string, to: string, subject: string, body: string): string {
+function buildRawEmail(from: string, to: string, subject: string, body: string, threadId?: string): string {
   const lines = [
     `From: ${from}`,
     `To: ${to}`,
     `Subject: ${subject}`,
     'MIME-Version: 1.0',
     'Content-Type: text/plain; charset="UTF-8"',
-    '',
-    body,
   ];
-  const raw = lines.join('\r\n');
-  return Buffer.from(raw).toString('base64url');
+  if (threadId) {
+    lines.push(`In-Reply-To: ${threadId}`);
+    lines.push(`References: ${threadId}`);
+  }
+  lines.push('', body);
+  return Buffer.from(lines.join('\r\n')).toString('base64url');
 }
 
 export async function sendEmail({ to, subject, body, senderEmail, senderName, clientId, clientSecret, refreshToken }: SendEmailParams) {
@@ -41,6 +65,89 @@ export async function sendEmail({ to, subject, body, senderEmail, senderName, cl
   const result = await gmail.users.messages.send({
     userId: 'me',
     requestBody: { raw },
+  });
+
+  return {
+    messageId: result.data.id,
+    threadId: result.data.threadId,
+  };
+}
+
+export async function getUnreadReplies({ clientId, clientSecret, refreshToken }: GmailAuth, afterTimestamp?: number): Promise<ParsedMessage[]> {
+  const auth = createOAuth2Client(clientId, clientSecret, refreshToken);
+  const gmail = google.gmail({ version: 'v1', auth });
+
+  let query = 'is:unread label:inbox';
+  if (afterTimestamp) {
+    query += ` after:${Math.floor(afterTimestamp / 1000)}`;
+  }
+
+  const listRes = await gmail.users.messages.list({
+    userId: 'me',
+    q: query,
+    maxResults: 50,
+  });
+
+  const messages = listRes.data.messages || [];
+  const parsed: ParsedMessage[] = [];
+
+  for (const msg of messages) {
+    const full = await gmail.users.messages.get({
+      userId: 'me',
+      id: msg.id!,
+      format: 'full',
+    });
+
+    const headers = full.data.payload?.headers || [];
+    const getHeader = (name: string) => headers.find(h => h.name?.toLowerCase() === name.toLowerCase())?.value || '';
+
+    let body = '';
+    const payload = full.data.payload;
+    if (payload?.body?.data) {
+      body = Buffer.from(payload.body.data, 'base64url').toString('utf-8');
+    } else if (payload?.parts) {
+      const textPart = payload.parts.find(p => p.mimeType === 'text/plain');
+      if (textPart?.body?.data) {
+        body = Buffer.from(textPart.body.data, 'base64url').toString('utf-8');
+      }
+    }
+
+    parsed.push({
+      id: full.data.id || '',
+      threadId: full.data.threadId || '',
+      from: getHeader('From'),
+      to: getHeader('To'),
+      subject: getHeader('Subject'),
+      body,
+      date: getHeader('Date'),
+    });
+  }
+
+  return parsed;
+}
+
+export async function markAsRead({ clientId, clientSecret, refreshToken }: GmailAuth, messageId: string) {
+  const auth = createOAuth2Client(clientId, clientSecret, refreshToken);
+  const gmail = google.gmail({ version: 'v1', auth });
+
+  await gmail.users.messages.modify({
+    userId: 'me',
+    id: messageId,
+    requestBody: { removeLabelIds: ['UNREAD'] },
+  });
+}
+
+export async function replyToThread({ threadId, to, subject, body, senderEmail, senderName, clientId, clientSecret, refreshToken }: ReplyToThreadParams) {
+  const auth = createOAuth2Client(clientId, clientSecret, refreshToken);
+  const gmail = google.gmail({ version: 'v1', auth });
+
+  const from = senderName ? `${senderName} <${senderEmail}>` : senderEmail;
+  const replySubject = subject.startsWith('Re:') ? subject : `Re: ${subject}`;
+  const raw = buildRawEmail(from, to, replySubject, body, threadId);
+
+  const result = await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: { raw, threadId },
   });
 
   return {

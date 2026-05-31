@@ -14,7 +14,7 @@ export interface IProspect extends Document {
   fundingAmount: number | null;
   companySize: number | null;
   linkedinUrl: string;
-  status: 'new' | 'contacted' | 'replied' | 'meeting' | 'closed' | 'unsubscribed';
+  status: 'new' | 'contacted' | 'replied' | 'meeting' | 'closed' | 'unsubscribed' | 'bounced';
   lastContactedAt: Date | null;
   notes: string;
   createdAt: Date;
@@ -38,7 +38,7 @@ const ProspectSchema = new Schema<IProspect>(
     linkedinUrl: { type: String, default: '' },
     status: {
       type: String,
-      enum: ['new', 'contacted', 'replied', 'meeting', 'closed', 'unsubscribed'],
+      enum: ['new', 'contacted', 'replied', 'meeting', 'closed', 'unsubscribed', 'bounced'],
       default: 'new',
     },
     lastContactedAt: { type: Date, default: null },

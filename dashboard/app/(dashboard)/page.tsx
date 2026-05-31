@@ -7,6 +7,7 @@ import {
   Users, Mail, MessageSquare, Calendar, TrendingUp, Zap,
   Loader2, RefreshCw, CheckCircle, Send, ArrowRight,
 } from 'lucide-react';
+import { PerformanceChart } from '@/components/ui/PerformanceChart';
 
 interface Stats {
   overview: {
@@ -310,6 +311,12 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-500 mt-1">Deals Closed</p>
             </div>
           </div>
+        </div>
+
+        {/* Performance Chart */}
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Weekly Performance</h2>
+          <PerformanceChart />
         </div>
       </div>
     </>

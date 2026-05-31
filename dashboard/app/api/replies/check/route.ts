@@ -6,6 +6,7 @@ import { Interaction } from '@/models/Interaction';
 import { Campaign } from '@/models/Campaign';
 import { getUnreadReplies, markAsRead, replyToThread } from '@/lib/gmail';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 function extractEmail(from: string): string {
   const match = from.match(/<([^>]+)>/);
@@ -75,6 +76,14 @@ export async function POST(req: NextRequest) {
   try {
     const userId = req.headers.get('x-user-id');
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { allowed, resetIn } = checkRateLimit(`replycheck:${userId}`, 5, 60_000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Rate limited. Please wait before checking again.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(resetIn / 1000)) } }
+      );
+    }
 
     await connectDB();
 

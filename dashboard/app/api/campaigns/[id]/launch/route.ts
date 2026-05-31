@@ -7,6 +7,7 @@ import { Interaction } from '@/models/Interaction';
 import { Settings } from '@/models/Settings';
 import { sendEmail } from '@/lib/gmail';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 function renderTemplate(template: string, data: Record<string, any>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => data[key] || '');
@@ -66,6 +67,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   try {
     const userId = req.headers.get('x-user-id');
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { allowed, resetIn } = checkRateLimit(`launch:${userId}`, 3, 60_000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Rate limited. Please wait before launching another campaign.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(resetIn / 1000)) } }
+      );
+    }
 
     const { id } = await params;
     if (!mongoose.Types.ObjectId.isValid(id)) {

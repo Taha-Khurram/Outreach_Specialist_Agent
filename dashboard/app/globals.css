@@ -24,4 +24,19 @@
   .card {
     @apply rounded-xl border border-gray-200 bg-white p-6 shadow-sm;
   }
+
+  .animate-in {
+    animation: slideIn 0.3s ease-out;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

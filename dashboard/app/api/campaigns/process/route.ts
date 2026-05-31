@@ -66,6 +66,13 @@ Rules:
   }
 }
 
+function isWithinSendWindow(sendWindow: { start: number; end: number }): boolean {
+  const now = new Date();
+  const hour = now.getUTCHours() - 5; // EST approximation
+  const adjustedHour = hour < 0 ? hour + 24 : hour;
+  return adjustedHour >= sendWindow.start && adjustedHour < sendWindow.end;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const userId = req.headers.get('x-user-id');
@@ -95,14 +102,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Gmail OAuth not configured' }, { status: 400 });
     }
 
-    const dailyLimit = settings.campaigns?.dailyLimit || 20;
+    const dailyLimit = settings.email?.dailySendLimit || 50;
+    const sendWindow = { start: 9, end: 17 };
     const now = new Date();
+
+    if (!isWithinSendWindow(sendWindow)) {
+      return NextResponse.json({ skipped: true, reason: 'Outside send window', sendWindow });
+    }
+
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const sentTodayCount = await Interaction.countDocuments({
+      userId,
+      type: 'email_sent',
+      createdAt: { $gte: todayStart },
+    });
+
+    if (sentTodayCount >= dailyLimit) {
+      return NextResponse.json({ skipped: true, reason: 'Daily send limit reached', sentToday: sentTodayCount, dailyLimit });
+    }
+
+    const remainingQuota = dailyLimit - sentTodayCount;
 
     const activeCampaigns = await Campaign.find({ userId, status: 'active' });
 
-    const results = { processed: 0, sent: 0, failed: 0, completed: 0 };
+    const results = { processed: 0, sent: 0, failed: 0, completed: 0, sentToday: sentTodayCount };
 
-    let sentToday = 0;
+    let sentThisRun = 0;
 
     for (const campaign of activeCampaigns) {
       const dueProspects = campaign.prospects.filter(
@@ -116,7 +142,7 @@ export async function POST(req: NextRequest) {
       const prospectMap = new Map(prospects.map((p: any) => [p._id.toString(), p]));
 
       for (const cp of dueProspects) {
-        if (sentToday >= dailyLimit) break;
+        if (sentThisRun >= remainingQuota) break;
 
         results.processed++;
         const prospect: any = prospectMap.get(cp.prospectId.toString());
@@ -181,7 +207,7 @@ export async function POST(req: NextRequest) {
           }
 
           results.sent++;
-          sentToday++;
+          sentThisRun++;
         } catch (err: any) {
           console.error(`Follow-up failed for ${prospect.email}:`, err.message);
           results.failed++;

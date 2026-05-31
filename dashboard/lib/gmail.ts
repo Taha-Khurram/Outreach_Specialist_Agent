@@ -155,3 +155,54 @@ export async function replyToThread({ threadId, to, subject, body, senderEmail, 
     threadId: result.data.threadId,
   };
 }
+
+export async function checkBounces({ clientId, clientSecret, refreshToken }: GmailAuth, afterTimestamp?: number): Promise<{ email: string; reason: string }[]> {
+  const auth = createOAuth2Client(clientId, clientSecret, refreshToken);
+  const gmail = google.gmail({ version: 'v1', auth });
+
+  let query = 'from:mailer-daemon@google.com OR from:postmaster';
+  if (afterTimestamp) {
+    query += ` after:${Math.floor(afterTimestamp / 1000)}`;
+  }
+
+  const listRes = await gmail.users.messages.list({
+    userId: 'me',
+    q: query,
+    maxResults: 20,
+  });
+
+  const messages = listRes.data.messages || [];
+  const bounces: { email: string; reason: string }[] = [];
+
+  for (const msg of messages) {
+    const full = await gmail.users.messages.get({
+      userId: 'me',
+      id: msg.id!,
+      format: 'full',
+    });
+
+    let body = '';
+    const payload = full.data.payload;
+    if (payload?.body?.data) {
+      body = Buffer.from(payload.body.data, 'base64url').toString('utf-8');
+    } else if (payload?.parts) {
+      const textPart = payload.parts.find(p => p.mimeType === 'text/plain');
+      if (textPart?.body?.data) {
+        body = Buffer.from(textPart.body.data, 'base64url').toString('utf-8');
+      }
+    }
+
+    const emailMatch = body.match(/(?:was not delivered to|could not be delivered to|rejected by)\s+([^\s<]+@[^\s>]+)/i)
+      || body.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+
+    if (emailMatch) {
+      const reason = body.includes('does not exist') ? 'invalid_address'
+        : body.includes('quota') ? 'mailbox_full'
+        : body.includes('blocked') ? 'blocked'
+        : 'unknown';
+      bounces.push({ email: emailMatch[1].toLowerCase(), reason });
+    }
+  }
+
+  return bounces;
+}

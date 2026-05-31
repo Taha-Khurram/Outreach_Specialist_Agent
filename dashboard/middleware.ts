@@ -18,6 +18,12 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const publicPaths = ['/login', '/signup', '/api/auth/login', '/api/auth/signup'];
+  const cronPaths = ['/api/cron'];
+
+  if (cronPaths.some(p => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
+
   if (publicPaths.some(p => pathname.startsWith(p))) {
     // If already logged in, redirect away from auth pages
     const token = request.cookies.get('token')?.value;

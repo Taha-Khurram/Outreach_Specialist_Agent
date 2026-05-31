@@ -1,0 +1,30 @@
+{
+  "name": "client-acquisition-agent",
+  "version": "1.0.0",
+  "description": "AI-powered client acquisition agent for closing US web/mobile app development deals",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "discover": "node scripts/discover.js",
+    "send-emails": "node scripts/send-emails.js",
+    "monitor": "node scripts/monitor-replies.js",
+    "report": "node scripts/daily-report.js",
+    "test": "node --test tests/**/*.test.js",
+    "setup": "node scripts/setup.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "googleapis": "^144.0.0",
+    "handlebars": "^4.7.8",
+    "node-cron": "^3.0.3",
+    "dotenv": "^16.4.7",
+    "winston": "^3.17.0",
+    "p-queue": "^8.1.0"
+  },
+  "devDependencies": {
+    "c8": "^10.1.3"
+  }
+}

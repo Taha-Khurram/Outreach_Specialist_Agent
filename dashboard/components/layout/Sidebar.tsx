@@ -11,12 +11,14 @@ import {
   LogOut,
   Zap,
   TrendingUp,
+  Kanban,
 } from 'lucide-react';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Prospects', href: '/prospects', icon: Users },
   { name: 'Campaigns', href: '/campaigns', icon: Mail },
+  { name: 'Pipeline', href: '/pipeline', icon: Kanban },
   { name: 'Replies', href: '/replies', icon: MessageSquare },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];

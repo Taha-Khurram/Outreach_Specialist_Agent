@@ -59,7 +59,13 @@ Prospect details:
 - Tech Stack: ${prospect.techStack?.join(', ') || 'Unknown'}
 - Company Size: ${prospect.companySize || 'Unknown'} employees
 - Funding: ${prospect.funding || 'Unknown'}
-
+${prospect.research ? `
+Company Research:
+- Summary: ${prospect.research.summary}
+- Pain Points: ${prospect.research.painPoints?.join(', ')}
+- Talking Points: ${prospect.research.talkingPoints?.join(', ')}
+- Tech Needs: ${prospect.research.techNeeds?.join(', ')}
+` : ''}
 Rules:
 - Keep the email under 100 words
 - Sound human and conversational, not salesy

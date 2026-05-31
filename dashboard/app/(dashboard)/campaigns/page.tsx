@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatusBadge } from '@/components/ui/Badge';
 import {
-  Mail, Plus, Edit2, Trash2, X, Loader2, Play, Pause, BarChart3,
+  Mail, Plus, Edit2, Trash2, X, Loader2, Play, Pause, BarChart3, FileText,
 } from 'lucide-react';
 
 interface CampaignStep {
@@ -52,6 +52,8 @@ export default function CampaignsPage() {
   const [selectedProspects, setSelectedProspects] = useState<string[]>([]);
   const [availableProspects, setAvailableProspects] = useState<ProspectOption[]>([]);
   const [prospectSearch, setProspectSearch] = useState('');
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
 
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
@@ -76,6 +78,27 @@ export default function CampaignsPage() {
     } catch {}
   }, []);
 
+  async function fetchTemplates() {
+    try {
+      const res = await fetch('/api/templates');
+      if (res.ok) {
+        const data = await res.json();
+        setTemplates(data.templates || []);
+      }
+    } catch {}
+  }
+
+  function applyTemplate(template: any) {
+    setSteps(template.steps.map((s: any) => ({
+      stepNumber: s.stepNumber,
+      subject: s.subject,
+      body: s.body,
+      delayDays: s.delayDays,
+    })));
+    if (!name) setName(template.name);
+    setShowTemplatePicker(false);
+  }
+
   useEffect(() => { fetchCampaigns(); }, [fetchCampaigns]);
 
   function openCreate() {
@@ -87,6 +110,7 @@ export default function CampaignsPage() {
     setError('');
     setShowModal(true);
     fetchProspects();
+    fetchTemplates();
   }
 
   function openEdit(campaign: Campaign) {
@@ -314,6 +338,27 @@ export default function CampaignsPage() {
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               {error && (
                 <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">{error}</div>
+              )}
+
+              {/* Template Picker */}
+              {!editingId && (
+                <div>
+                  <button type="button" onClick={() => setShowTemplatePicker(!showTemplatePicker)}
+                    className="flex items-center gap-2 text-sm font-medium text-purple-600 hover:text-purple-700">
+                    <FileText className="h-4 w-4" /> Use a Template
+                  </button>
+                  {showTemplatePicker && templates.length > 0 && (
+                    <div className="mt-2 border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-48 overflow-y-auto">
+                      {templates.map((t: any) => (
+                        <button key={t._id} type="button" onClick={() => applyTemplate(t)}
+                          className="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors">
+                          <div className="text-sm font-medium text-gray-900">{t.name}</div>
+                          <div className="text-xs text-gray-500">{t.description} · {t.steps.length} steps</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Campaign Name */}

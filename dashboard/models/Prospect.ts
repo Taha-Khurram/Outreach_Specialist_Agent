@@ -1,5 +1,22 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IScoreBreakdown {
+  companyFit: number;
+  roleAuthority: number;
+  engagementSignals: number;
+  timing: number;
+  reasoning?: string;
+}
+
+export interface IResearch {
+  summary: string;
+  painPoints: string[];
+  talkingPoints: string[];
+  recentNews: string;
+  techNeeds: string[];
+  researchedAt: Date;
+}
+
 export interface IProspect extends Document {
   userId: mongoose.Types.ObjectId;
   apolloId: string;
@@ -17,6 +34,10 @@ export interface IProspect extends Document {
   status: 'new' | 'contacted' | 'replied' | 'meeting' | 'closed' | 'unsubscribed' | 'bounced';
   lastContactedAt: Date | null;
   notes: string;
+  score?: number;
+  scoreBreakdown?: IScoreBreakdown;
+  scoredAt?: Date;
+  research?: IResearch;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +64,29 @@ const ProspectSchema = new Schema<IProspect>(
     },
     lastContactedAt: { type: Date, default: null },
     notes: { type: String, default: '' },
+    score: { type: Number, default: null },
+    scoreBreakdown: {
+      type: {
+        companyFit: Number,
+        roleAuthority: Number,
+        engagementSignals: Number,
+        timing: Number,
+        reasoning: String,
+      },
+      default: null,
+    },
+    scoredAt: { type: Date, default: null },
+    research: {
+      type: {
+        summary: String,
+        painPoints: [String],
+        talkingPoints: [String],
+        recentNews: String,
+        techNeeds: [String],
+        researchedAt: Date,
+      },
+      default: null,
+    },
   },
   { timestamps: true }
 );

@@ -165,11 +165,11 @@ export default function ProspectsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input type="text" placeholder="Search by name, company, email..."
               value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-              className="w-80 pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300" />
+              className="w-80 pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:border-brand-400 focus:ring-2 focus:ring-brand-100 outline-none transition-all" />
           </div>
           <div className="flex items-center gap-3">
             <button onClick={handleScoreAll} disabled={scoring}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+              className="btn-secondary gap-2 disabled:opacity-50">
               {scoring ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
               Score All
             </button>
@@ -186,17 +186,17 @@ export default function ProspectsPage() {
 
         {/* Status Tabs + Sort */}
         <div className="flex items-center justify-between">
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             {statuses.map(s => (
               <button key={s} onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${statusFilter === s ? 'bg-brand-50 text-brand-700' : 'text-gray-500 hover:bg-gray-50'}`}>
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${statusFilter === s ? 'bg-brand-50 text-brand-700 shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}>
                 {s.charAt(0).toUpperCase() + s.slice(1)}
                 {s === 'all' && <span className="ml-1.5 text-xs text-gray-400">{total}</span>}
               </button>
             ))}
           </div>
           <button onClick={() => setSortByScore(!sortByScore)}
-            className={`text-xs font-medium px-2 py-1 rounded ${sortByScore ? 'bg-brand-50 text-brand-700' : 'text-gray-500 hover:bg-gray-50'}`}>
+            className={`text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors ${sortByScore ? 'bg-brand-50 text-brand-700 shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}>
             Sort by Score
           </button>
         </div>
@@ -217,7 +217,7 @@ export default function ProspectsPage() {
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
+                <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Prospect</th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Company</th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Score</th>
@@ -226,9 +226,9 @@ export default function ProspectsPage() {
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-100">
                 {filtered.map(p => (
-                  <tr key={p._id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={p._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{p.firstName} {p.lastName}</div>
                       <div className="text-xs text-gray-500">{p.email}</div>
@@ -266,9 +266,9 @@ export default function ProspectsPage() {
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowModal(false)} />
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowModal(false)} />
+          <div className="relative bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">{editingId ? 'Edit Prospect' : 'Add Prospect'}</h2>
               <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100"><X className="h-5 w-5" /></button>
             </div>
@@ -305,9 +305,9 @@ export default function ProspectsPage() {
       {/* Research Modal */}
       {researchProspect && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setResearchProspect(null)} />
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setResearchProspect(null)} />
+          <div className="relative bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">AI Research: {researchProspect.company}</h2>
                 <p className="text-sm text-gray-500">{researchProspect.firstName} {researchProspect.lastName} · {researchProspect.title}</p>
@@ -341,7 +341,7 @@ export default function ProspectsPage() {
                     <ul className="space-y-1">
                       {researchProspect.research.talkingPoints.map((p, i) => (
                         <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
-                          <span className="text-green-400 mt-0.5">•</span>{p}
+                          <span className="text-emerald-400 mt-0.5">•</span>{p}
                         </li>
                       ))}
                     </ul>
@@ -350,7 +350,7 @@ export default function ProspectsPage() {
                     <h3 className="text-sm font-semibold text-gray-700 mb-2">Tech Needs</h3>
                     <div className="flex flex-wrap gap-2">
                       {researchProspect.research.techNeeds.map((t, i) => (
-                        <span key={i} className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-purple-50 text-purple-700">{t}</span>
+                        <span key={i} className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-purple-50 text-purple-700 border border-purple-200">{t}</span>
                       ))}
                     </div>
                   </div>

@@ -244,7 +244,7 @@ export default function CampaignsPage() {
         </div>
 
         {successMsg && (
-          <div className="rounded-lg bg-green-50 border border-green-200 p-3 text-sm text-green-700">
+          <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-700">
             {successMsg}
           </div>
         )}
@@ -266,7 +266,7 @@ export default function CampaignsPage() {
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
+                <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Campaign</th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Steps</th>
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Prospects</th>
@@ -276,9 +276,9 @@ export default function CampaignsPage() {
                   <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-100">
                 {campaigns.map(c => (
-                  <tr key={c._id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={c._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{c.name}</div>
                       <div className="text-xs text-gray-400">{new Date(c.createdAt).toLocaleDateString()}</div>
@@ -292,7 +292,7 @@ export default function CampaignsPage() {
                       <div className="flex items-center gap-1">
                         {(c.status === 'draft' || c.status === 'paused') && (
                           <>
-                            <button onClick={() => handleLaunch(c._id)} disabled={launching === c._id} className="p-1.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors" title="Launch">
+                            <button onClick={() => handleLaunch(c._id)} disabled={launching === c._id} className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Launch">
                               {launching === c._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                             </button>
                             <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-colors" title="Edit">
@@ -324,9 +324,9 @@ export default function CampaignsPage() {
       {/* Campaign Builder Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowModal(false)} />
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowModal(false)} />
+          <div className="relative bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">
                 {editingId ? 'Edit Campaign' : 'New Campaign'}
               </h2>
@@ -348,7 +348,7 @@ export default function CampaignsPage() {
                     <FileText className="h-4 w-4" /> Use a Template
                   </button>
                   {showTemplatePicker && templates.length > 0 && (
-                    <div className="mt-2 border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-48 overflow-y-auto">
+                    <div className="mt-2 border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-48 overflow-y-auto bg-white">
                       {templates.map((t: any) => (
                         <button key={t._id} type="button" onClick={() => applyTemplate(t)}
                           className="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors">
@@ -378,7 +378,7 @@ export default function CampaignsPage() {
 
                 <div className="space-y-4">
                   {steps.map((step, i) => (
-                    <div key={i} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                    <div key={i} className="border border-gray-200 rounded-lg p-4 space-y-3 bg-gray-50">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-gray-700">
                           Step {step.stepNumber}: {i === 0 ? 'Initial Email' : `Follow-up ${i}`}
@@ -436,12 +436,12 @@ export default function CampaignsPage() {
                   placeholder="Search prospects..."
                   className="input-field text-sm mb-2"
                 />
-                <div className="border border-gray-200 rounded-lg max-h-48 overflow-y-auto">
+                <div className="border border-gray-200 rounded-lg max-h-48 overflow-y-auto bg-white">
                   {filteredProspects.length === 0 ? (
                     <p className="p-3 text-sm text-gray-400 text-center">No prospects found. Discover or add prospects first.</p>
                   ) : (
                     filteredProspects.map(p => (
-                      <label key={p._id} className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0">
+                      <label key={p._id} className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
                         <input
                           type="checkbox"
                           checked={selectedProspects.includes(p._id)}

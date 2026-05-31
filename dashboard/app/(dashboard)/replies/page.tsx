@@ -27,9 +27,9 @@ interface ReplyInteraction {
 }
 
 const classificationStyles: Record<string, { bg: string; text: string; label: string }> = {
-  POSITIVE: { bg: 'bg-green-100', text: 'text-green-700', label: 'Positive' },
-  NEUTRAL: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Neutral' },
-  NEGATIVE: { bg: 'bg-red-100', text: 'text-red-700', label: 'Negative' },
+  POSITIVE: { bg: 'bg-emerald-50', text: 'text-emerald-700', label: 'Positive' },
+  NEUTRAL: { bg: 'bg-amber-50', text: 'text-amber-700', label: 'Neutral' },
+  NEGATIVE: { bg: 'bg-red-50', text: 'text-red-700', label: 'Negative' },
   UNSUBSCRIBE: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Unsubscribe' },
 };
 
@@ -123,8 +123,8 @@ export default function RepliesPage() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="card flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
-              <CheckCircle className="h-5 w-5 text-green-600" />
+            <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <CheckCircle className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{counts.POSITIVE || 0}</p>
@@ -132,7 +132,7 @@ export default function RepliesPage() {
             </div>
           </div>
           <div className="card flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-amber-50 flex items-center justify-center">
               <Clock className="h-5 w-5 text-amber-600" />
             </div>
             <div>
@@ -141,7 +141,7 @@ export default function RepliesPage() {
             </div>
           </div>
           <div className="card flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-red-100 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-red-50 flex items-center justify-center">
               <XCircle className="h-5 w-5 text-red-600" />
             </div>
             <div>
@@ -162,13 +162,13 @@ export default function RepliesPage() {
 
         {/* Toolbar */}
         <div className="flex items-center justify-between">
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             {filters.map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                  filter === f ? 'bg-brand-50 text-brand-700' : 'text-gray-500 hover:bg-gray-50'
+                  filter === f ? 'bg-brand-50 text-brand-700 shadow-sm' : 'text-gray-500 hover:bg-gray-100'
                 }`}
               >
                 {f === 'all' ? 'All' : classificationStyles[f]?.label || f}
@@ -183,7 +183,7 @@ export default function RepliesPage() {
         </div>
 
         {checkResult && (
-          <div className={`rounded-lg border p-3 text-sm ${checkResult.startsWith('Error') ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'}`}>
+          <div className={`rounded-lg border p-3 text-sm ${checkResult.startsWith('Error') ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
             {checkResult}
           </div>
         )}
@@ -254,16 +254,16 @@ export default function RepliesPage() {
       {/* Reply Modal */}
       {showReplyModal && replyingTo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowReplyModal(false)} />
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowReplyModal(false)} />
+          <div className="relative bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Reply to {replyingTo.prospect?.firstName || 'Prospect'}</h2>
               <button onClick={() => setShowReplyModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="p-6 space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <p className="text-xs text-gray-500 mb-1">Their reply:</p>
                 <p className="text-sm text-gray-700">{replyingTo.body}</p>
               </div>

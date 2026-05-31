@@ -3,40 +3,127 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --sidebar-width: 260px;
+    --header-height: 64px;
+    --color-deep-space: #012a4a;
+    --color-navy: #013a63;
+    --color-yale: #01497c;
+    --color-blue: #014f86;
+    --color-cerulean: #2a6f97;
+    --color-ocean: #2c7da0;
+    --color-airforce: #468faf;
+    --color-steel: #61a5c2;
+    --color-sky: #89c2d9;
+    --color-light: #a9d6e5;
+  }
+
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
-    @apply text-gray-900;
+    @apply text-gray-900 antialiased;
+    background: #f8fafc;
+    min-height: 100vh;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white;
+    background: linear-gradient(135deg, var(--color-ocean) 0%, var(--color-cerulean) 50%, var(--color-blue) 100%);
+    box-shadow: 0 1px 3px rgba(1, 42, 74, 0.2), 0 1px 2px rgba(1, 42, 74, 0.1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 4px 16px rgba(42, 111, 151, 0.35);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(1, 42, 74, 0.2);
+  }
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  .btn-primary:focus-visible {
+    @apply outline-none ring-2 ring-offset-2;
+    ring-color: var(--color-steel);
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-colors;
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold;
+    color: var(--color-cerulean);
+    background: white;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  .btn-secondary:active {
+    background: #f1f5f9;
+  }
+  .btn-secondary:focus-visible {
+    @apply outline-none ring-2 ring-offset-2;
+    ring-color: var(--color-steel);
   }
 
   .input-field {
-    @apply block w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors;
+    @apply block w-full rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 bg-white;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .input-field:focus {
+    border-color: var(--color-steel);
+    box-shadow: 0 0 0 3px rgba(97, 165, 194, 0.15);
+    outline: none;
   }
 
   .card {
-    @apply rounded-xl border border-gray-200 bg-white p-6 shadow-sm;
+    @apply rounded-xl p-6 bg-white;
+    border: 1px solid #e8edf2;
+    box-shadow: 0 1px 3px rgba(1, 42, 74, 0.04), 0 1px 2px rgba(1, 42, 74, 0.02);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card:hover {
+    box-shadow: 0 4px 16px rgba(1, 42, 74, 0.07), 0 2px 6px rgba(1, 42, 74, 0.04);
+    border-color: #dde4eb;
   }
 
-  .animate-in {
-    animation: slideIn 0.3s ease-out;
+  .sidebar-nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200;
+  }
+
+  .sidebar-nav-active {
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebar-nav-inactive {
+    color: rgba(169, 214, 229, 0.7);
+  }
+  .sidebar-nav-inactive:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.07);
   }
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }

@@ -45,7 +45,7 @@ export function PerformanceChart() {
 
   if (data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center border border-dashed border-gray-200 rounded-lg bg-gray-50">
+      <div className="h-64 flex items-center justify-center border border-dashed border-white/30 rounded-lg bg-white/10">
         <div className="text-center">
           <p className="text-sm text-gray-500">No data yet</p>
           <p className="text-xs text-gray-400">Charts will populate as emails are sent</p>
@@ -61,8 +61,8 @@ export function PerformanceChart() {
           <button
             key={d}
             onClick={() => setRange(d)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-              range === d ? 'bg-brand-50 text-brand-700' : 'text-gray-500 hover:bg-gray-50'
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${
+              range === d ? 'bg-white/60 text-brand-700 shadow-sm backdrop-blur-sm' : 'text-gray-500 hover:bg-white/30'
             }`}
           >
             {d} days
@@ -75,7 +75,7 @@ export function PerformanceChart() {
           <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#9ca3af" />
           <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" allowDecimals={false} />
           <Tooltip
-            contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '12px' }}
+            contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.3)', fontSize: '12px', backdropFilter: 'blur(12px)', background: 'rgba(255,255,255,0.8)' }}
           />
           <Legend wrapperStyle={{ fontSize: '12px' }} />
           <Area type="monotone" dataKey="sent" stackId="1" stroke="#8b5cf6" fill="#ede9fe" name="Sent" />

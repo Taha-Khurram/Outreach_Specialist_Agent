@@ -128,7 +128,7 @@ export default function SettingsPage() {
         {message && (
           <div className={`rounded-lg border p-3 text-sm ${
             message.type === 'success'
-              ? 'bg-green-50 border-green-200 text-green-700'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
               : 'bg-red-50 border-red-200 text-red-700'
           }`}>
             {message.text}
@@ -138,7 +138,7 @@ export default function SettingsPage() {
         {/* API Keys */}
         <section className="card">
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-amber-50 flex items-center justify-center">
               <Key className="h-5 w-5 text-amber-600" />
             </div>
             <div>
@@ -183,7 +183,7 @@ export default function SettingsPage() {
         {/* Email Settings */}
         <section className="card">
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-purple-50 flex items-center justify-center">
               <Mail className="h-5 w-5 text-purple-600" />
             </div>
             <div>
@@ -240,8 +240,8 @@ export default function SettingsPage() {
         {/* AI Settings */}
         <section className="card">
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-              <Bot className="h-5 w-5 text-blue-600" />
+            <div className="h-10 w-10 rounded-lg bg-brand-50 flex items-center justify-center">
+              <Bot className="h-5 w-5 text-brand-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">AI Agent</h2>
@@ -302,8 +302,8 @@ export default function SettingsPage() {
         {/* Prospect Targeting */}
         <section className="card">
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
-              <Globe className="h-5 w-5 text-green-600" />
+            <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <Globe className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Prospect Targeting</h2>
@@ -359,7 +359,7 @@ export default function SettingsPage() {
         {/* Schedule */}
         <section className="card">
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-indigo-50 flex items-center justify-center">
               <Bell className="h-5 w-5 text-indigo-600" />
             </div>
             <div>

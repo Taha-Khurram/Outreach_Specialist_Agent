@@ -22,17 +22,17 @@ export function useToast() {
 }
 
 const icons: Record<ToastType, ReactNode> = {
-  success: <CheckCircle className="h-5 w-5 text-green-500" />,
+  success: <CheckCircle className="h-5 w-5 text-emerald-500" />,
   error: <XCircle className="h-5 w-5 text-red-500" />,
   warning: <AlertTriangle className="h-5 w-5 text-amber-500" />,
-  info: <Info className="h-5 w-5 text-blue-500" />,
+  info: <Info className="h-5 w-5 text-brand-500" />,
 };
 
 const styles: Record<ToastType, string> = {
-  success: 'border-green-200 bg-green-50',
-  error: 'border-red-200 bg-red-50',
-  warning: 'border-amber-200 bg-amber-50',
-  info: 'border-blue-200 bg-blue-50',
+  success: 'border-emerald-200 bg-white',
+  error: 'border-red-200 bg-white',
+  warning: 'border-amber-200 bg-white',
+  info: 'border-brand-200 bg-white',
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -57,7 +57,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map(t => (
           <div
             key={t.id}
-            className={`flex items-start gap-3 p-4 rounded-lg border shadow-lg animate-in slide-in-from-right ${styles[t.type]}`}
+            className={`flex items-start gap-3 p-4 rounded-xl border shadow-lg ${styles[t.type]}`}
           >
             <div className="flex-shrink-0 mt-0.5">{icons[t.type]}</div>
             <p className="text-sm text-gray-700 flex-1">{t.message}</p>

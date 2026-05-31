@@ -114,20 +114,20 @@ export default function DashboardPage() {
   const statusBreakdown = stats?.statusBreakdown || {};
 
   const pipelineStages = [
-    { label: 'New', count: statusBreakdown['new'] || 0, color: 'bg-blue-500' },
-    { label: 'Contacted', count: statusBreakdown['contacted'] || 0, color: 'bg-purple-500' },
-    { label: 'Replied', count: statusBreakdown['replied'] || 0, color: 'bg-green-500' },
-    { label: 'Meeting', count: statusBreakdown['meeting_scheduled'] || 0, color: 'bg-amber-500' },
-    { label: 'Closed', count: statusBreakdown['closed'] || 0, color: 'bg-emerald-600' },
+    { label: 'New', count: statusBreakdown['new'] || 0, color: 'bg-[#468faf]' },
+    { label: 'Contacted', count: statusBreakdown['contacted'] || 0, color: 'bg-[#2c7da0]' },
+    { label: 'Replied', count: statusBreakdown['replied'] || 0, color: 'bg-[#2a6f97]' },
+    { label: 'Meeting', count: statusBreakdown['meeting_scheduled'] || 0, color: 'bg-[#014f86]' },
+    { label: 'Closed', count: statusBreakdown['closed'] || 0, color: 'bg-emerald-500' },
   ];
 
   const totalPipeline = pipelineStages.reduce((a, b) => a + b.count, 0) || 1;
 
   function getActivityIcon(type: string) {
     switch (type) {
-      case 'email_sent': return <Send className="h-4 w-4 text-purple-500" />;
-      case 'reply_received': return <MessageSquare className="h-4 w-4 text-green-500" />;
-      case 'meeting_scheduled': return <Calendar className="h-4 w-4 text-amber-500" />;
+      case 'email_sent': return <Send className="h-4 w-4 text-brand-600" />;
+      case 'reply_received': return <MessageSquare className="h-4 w-4 text-emerald-600" />;
+      case 'meeting_scheduled': return <Calendar className="h-4 w-4 text-amber-600" />;
       default: return <Zap className="h-4 w-4 text-gray-400" />;
     }
   }
@@ -147,7 +147,7 @@ export default function DashboardPage() {
       <>
         <Header title="Dashboard" />
         <div className="p-6 flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
         </div>
       </>
     );
@@ -175,56 +175,47 @@ export default function DashboardPage() {
         </div>
 
         {cronResult && (
-          <div className={`rounded-lg border p-3 text-sm ${cronResult.startsWith('Error') ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'}`}>
+          <div className={`rounded-lg border p-3 text-sm ${cronResult.startsWith('Error') ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
             {cronResult}
           </div>
         )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Total Prospects</p>
-                <p className="mt-1 text-3xl font-bold text-gray-900">{overview?.totalProspects || 0}</p>
-              </div>
-              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-blue-100">
-                <Users className="h-6 w-6 text-blue-600" />
-              </div>
+          <div className="card flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-brand-50 flex items-center justify-center">
+              <Users className="h-5 w-5 text-brand-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{overview?.totalProspects || 0}</p>
+              <p className="text-xs text-gray-500">Total Prospects</p>
             </div>
           </div>
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Emails Sent</p>
-                <p className="mt-1 text-3xl font-bold text-gray-900">{overview?.emailsSent || 0}</p>
-              </div>
-              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-purple-100">
-                <Mail className="h-6 w-6 text-purple-600" />
-              </div>
+          <div className="card flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-sky-50 flex items-center justify-center">
+              <Mail className="h-5 w-5 text-sky-700" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{overview?.emailsSent || 0}</p>
+              <p className="text-xs text-gray-500">Emails Sent</p>
             </div>
           </div>
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Replies</p>
-                <p className="mt-1 text-3xl font-bold text-gray-900">{overview?.replies || 0}</p>
-                <p className="mt-1 text-sm font-medium text-green-600">{overview?.replyRate || '0%'} rate</p>
-              </div>
-              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-green-100">
-                <MessageSquare className="h-6 w-6 text-green-600" />
-              </div>
+          <div className="card flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <MessageSquare className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{overview?.replies || 0}</p>
+              <p className="text-xs text-gray-500">Replies · {overview?.replyRate || '0%'} rate</p>
             </div>
           </div>
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Meetings Booked</p>
-                <p className="mt-1 text-3xl font-bold text-gray-900">{overview?.meetings || 0}</p>
-              </div>
-              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-amber-100">
-                <Calendar className="h-6 w-6 text-amber-600" />
-              </div>
+          <div className="card flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-amber-50 flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{overview?.meetings || 0}</p>
+              <p className="text-xs text-gray-500">Meetings Booked</p>
             </div>
           </div>
         </div>
@@ -237,8 +228,8 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold text-gray-900">Goal: Close {deals.goal} Clients</h2>
             </div>
             <div className="flex items-center gap-4 mb-3">
-              <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded-full transition-all"
+              <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-[#2a6f97] to-emerald-500 rounded-full transition-all"
                   style={{ width: `${Math.min((deals.totalDeals / deals.goal) * 100, 100)}%` }} />
               </div>
               <span className="text-lg font-bold text-gray-900">{deals.totalDeals}/{deals.goal}</span>
@@ -249,7 +240,7 @@ export default function DashboardPage() {
             {deals.totalDeals >= deals.goal ? (
               <p className="text-sm font-medium text-emerald-600 mt-2">Goal achieved!</p>
             ) : (
-              <p className="text-sm text-gray-500 mt-2">{deals.goal - deals.totalDeals} more client{deals.goal - deals.totalDeals !== 1 ? 's' : ''} to go. Deadline: June 30, 2026</p>
+              <p className="text-sm text-gray-500 mt-2">{deals.goal - deals.totalDeals} more client{deals.goal - deals.totalDeals !== 1 ? 's' : ''} to go</p>
             )}
           </div>
 
@@ -265,14 +256,14 @@ export default function DashboardPage() {
             )}
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {suggestions.slice(0, 5).map(s => (
-                <div key={s.prospectId} className="flex items-center justify-between py-1.5">
+                <div key={s.prospectId} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{s.firstName} {s.lastName} · {s.company}</p>
                     <p className="text-xs text-gray-500">{s.reason}</p>
                   </div>
                   <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                    s.priority >= 80 ? 'bg-red-100 text-red-700' :
-                    s.priority >= 60 ? 'bg-amber-100 text-amber-700' :
+                    s.priority >= 80 ? 'bg-red-50 text-red-700' :
+                    s.priority >= 60 ? 'bg-amber-50 text-amber-700' :
                     'bg-gray-100 text-gray-600'
                   }`}>{s.priority}</span>
                 </div>
@@ -299,7 +290,6 @@ export default function DashboardPage() {
               />
             ) : (
               <div className="space-y-4">
-                {/* Pipeline bar */}
                 <div className="flex h-8 rounded-lg overflow-hidden">
                   {pipelineStages.map(stage => (
                     stage.count > 0 && (
@@ -313,7 +303,6 @@ export default function DashboardPage() {
                     )
                   ))}
                 </div>
-                {/* Pipeline legend */}
                 <div className="flex flex-wrap gap-4">
                   {pipelineStages.map(stage => (
                     <div key={stage.label} className="flex items-center gap-2">
@@ -323,7 +312,6 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
-                {/* Conversion funnel */}
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <span>{statusBreakdown['contacted'] || 0} contacted</span>

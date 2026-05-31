@@ -23,10 +23,10 @@ interface Prospect {
 
 const STAGES = [
   { key: 'new', label: 'New', icon: UserPlus, color: 'border-gray-200 bg-gray-50' },
-  { key: 'contacted', label: 'Contacted', icon: Mail, color: 'border-blue-200 bg-blue-50' },
+  { key: 'contacted', label: 'Contacted', icon: Mail, color: 'border-brand-200 bg-brand-50' },
   { key: 'replied', label: 'Replied', icon: MessageSquare, color: 'border-purple-200 bg-purple-50' },
   { key: 'meeting', label: 'Meeting', icon: Calendar, color: 'border-amber-200 bg-amber-50' },
-  { key: 'closed', label: 'Closed', icon: CheckCircle2, color: 'border-green-200 bg-green-50' },
+  { key: 'closed', label: 'Closed', icon: CheckCircle2, color: 'border-emerald-200 bg-emerald-50' },
 ];
 
 export default function PipelinePage() {
@@ -165,7 +165,7 @@ export default function PipelinePage() {
           <p className="text-sm text-gray-500">
             {totalInPipeline} prospects in pipeline · {conversionRate}% conversion rate
           </p>
-          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
+          <button onClick={handleExport} className="btn-secondary gap-2">
             <Download className="h-4 w-4" /> Export CSV
           </button>
         </div>
@@ -176,10 +176,10 @@ export default function PipelinePage() {
             <div key={stage.key} className="min-w-[220px]">
               <div className={`rounded-t-lg border-t-4 ${
                 stage.key === 'new' ? 'border-t-gray-400' :
-                stage.key === 'contacted' ? 'border-t-blue-400' :
+                stage.key === 'contacted' ? 'border-t-[#2c7da0]' :
                 stage.key === 'replied' ? 'border-t-purple-400' :
                 stage.key === 'meeting' ? 'border-t-amber-400' :
-                'border-t-green-400'
+                'border-t-emerald-500'
               } bg-gray-50 px-3 py-2`}>
                 <h3 className="text-sm font-semibold text-gray-700">{stage.label}</h3>
                 <p className="text-xs text-gray-500">{grouped[stage.key]?.length || 0} prospects</p>
@@ -238,9 +238,9 @@ export default function PipelinePage() {
       {/* Close Deal Modal */}
       {showDealModal && dealProspect && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowDealModal(false)} />
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowDealModal(false)} />
+          <div className="relative bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Close Deal</h2>
               <button onClick={() => setShowDealModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
                 <X className="h-5 w-5" />

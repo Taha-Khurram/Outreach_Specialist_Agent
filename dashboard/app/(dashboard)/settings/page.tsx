@@ -39,7 +39,7 @@ interface SettingsState {
 const defaultSettings: SettingsState = {
   apiKeys: { apolloApiKey: '', geminiApiKey: '', googleRefreshToken: '' },
   email: { senderEmail: '', senderName: '', dailySendLimit: 50, calendlyLink: '' },
-  ai: { model: 'gemini-2.0-flash', confidenceThreshold: 0.8, autoReplyPositive: true, autoUnsubscribe: true },
+  ai: { model: 'gemini-3-flash-preview', confidenceThreshold: 0.8, autoReplyPositive: true, autoUnsubscribe: true },
   targeting: { titles: ['CEO', 'CTO', 'VP Engineering', 'Founder'], industries: ['SaaS', 'E-commerce', 'FinTech', 'HealthTech'], companySize: '10-200 employees', location: 'United States' },
   schedule: { discoveryTime: '09:00', emailSendTime: '10:00', replyCheckInterval: 5, reportTime: '18:00' },
 };
@@ -256,9 +256,9 @@ export default function SettingsPage() {
                 onChange={e => updateSection('ai', 'model', e.target.value)}
                 className="input-field"
               >
+                <option value="gemini-3-flash-preview">Gemini 3 Flash Preview (Latest)</option>
                 <option value="gemini-2.0-flash">Gemini 2.0 Flash (Fast, Cheap)</option>
                 <option value="gemini-2.0-pro">Gemini 2.0 Pro (Balanced)</option>
-                <option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash Preview (Latest)</option>
               </select>
             </div>
             <div>

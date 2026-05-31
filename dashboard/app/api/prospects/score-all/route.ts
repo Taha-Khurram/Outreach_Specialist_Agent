@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(geminiKey);
-    const model = genAI.getGenerativeModel({ model: settings?.ai?.model || 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: settings?.ai?.model || 'gemini-3-flash-preview' });
 
     let scored = 0;
 

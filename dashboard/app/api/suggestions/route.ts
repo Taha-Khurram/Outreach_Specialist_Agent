@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
     if (geminiKey && suggestions.length > 0) {
       try {
         const genAI = new GoogleGenerativeAI(geminiKey);
-        const model = genAI.getGenerativeModel({ model: settings?.ai?.model || 'gemini-2.0-flash' });
+        const model = genAI.getGenerativeModel({ model: settings?.ai?.model || 'gemini-3-flash-preview' });
 
         const topProspects = suggestions.slice(0, 5).map(s =>
           `- ${s.firstName} ${s.lastName} (${s.company}): ${s.status}, score ${s.score || '?'}, ${s.reason}`

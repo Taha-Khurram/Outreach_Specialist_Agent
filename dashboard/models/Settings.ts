@@ -50,7 +50,7 @@ const SettingsSchema = new Schema<ISettings>(
       calendlyLink: { type: String, default: '' },
     },
     ai: {
-      model: { type: String, default: 'gemini-2.0-flash' },
+      model: { type: String, default: 'gemini-3-flash-preview' },
       confidenceThreshold: { type: Number, default: 0.8 },
       autoReplyPositive: { type: Boolean, default: true },
       autoUnsubscribe: { type: Boolean, default: true },

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!geminiKey) return NextResponse.json({ error: 'Gemini API key not configured' }, { status: 400 });
 
     const genAI = new GoogleGenerativeAI(geminiKey);
-    const model = genAI.getGenerativeModel({ model: settings?.ai?.model || 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: settings?.ai?.model || 'gemini-3-flash-preview' });
 
     const prompt = `Score this prospect for a US-based web/mobile development agency. Rate 0-25 for each category.
 

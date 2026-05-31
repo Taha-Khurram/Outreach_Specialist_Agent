@@ -34,7 +34,7 @@ async function generatePersonalizedEmail(
   prospect: any
 ) {
   const genAI = new GoogleGenerativeAI(geminiApiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
   const templateData = {
     firstName: prospect.firstName,

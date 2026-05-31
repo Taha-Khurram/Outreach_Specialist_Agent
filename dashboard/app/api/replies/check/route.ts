@@ -15,7 +15,7 @@ function extractEmail(from: string): string {
 
 async function classifyReplyWithAI(geminiApiKey: string, replyText: string) {
   const genAI = new GoogleGenerativeAI(geminiApiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
   const prompt = `Classify this email reply into one of these categories:
 - POSITIVE: interested in meeting, wants to learn more, asks about services
@@ -46,7 +46,7 @@ Return ONLY valid JSON with these keys:
 
 async function generateAutoReply(geminiApiKey: string, classification: string, prospect: any, replyText: string, calendlyLink: string) {
   const genAI = new GoogleGenerativeAI(geminiApiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
   let instructions = '';
   if (classification === 'POSITIVE') {

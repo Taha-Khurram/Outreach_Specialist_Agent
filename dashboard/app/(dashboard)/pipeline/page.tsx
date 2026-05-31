@@ -5,7 +5,7 @@ import Header from '@/components/layout/Header';
 import ScoreBadge from '@/components/ui/ScoreBadge';
 import {
   Loader2, Search, ArrowRight, Mail, Calendar,
-  CheckCircle2, UserPlus, MessageSquare,
+  CheckCircle2, UserPlus, MessageSquare, X, DollarSign, Download,
 } from 'lucide-react';
 
 interface Prospect {
@@ -33,6 +33,11 @@ export default function PipelinePage() {
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [loading, setLoading] = useState(true);
   const [moving, setMoving] = useState<string | null>(null);
+  const [showDealModal, setShowDealModal] = useState(false);
+  const [dealProspect, setDealProspect] = useState<Prospect | null>(null);
+  const [dealValue, setDealValue] = useState('');
+  const [dealNotes, setDealNotes] = useState('');
+  const [dealSaving, setDealSaving] = useState(false);
 
   useEffect(() => {
     fetchProspects();
@@ -51,6 +56,16 @@ export default function PipelinePage() {
   }
 
   async function moveProspect(prospectId: string, newStatus: string) {
+    if (newStatus === 'closed') {
+      const prospect = prospects.find(p => p._id === prospectId);
+      if (prospect) {
+        setDealProspect(prospect);
+        setDealValue('');
+        setDealNotes('');
+        setShowDealModal(true);
+      }
+      return;
+    }
     setMoving(prospectId);
     try {
       const res = await fetch(`/api/prospects/${prospectId}`, {
@@ -65,6 +80,44 @@ export default function PipelinePage() {
       }
     } catch {} finally {
       setMoving(null);
+    }
+  }
+
+  async function handleCloseDeal() {
+    if (!dealProspect || !dealValue) return;
+    setDealSaving(true);
+    try {
+      const res = await fetch('/api/deals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prospectId: dealProspect._id,
+          value: Number(dealValue),
+          status: 'won',
+          notes: dealNotes,
+        }),
+      });
+      if (res.ok) {
+        setProspects(prev =>
+          prev.map(p => p._id === dealProspect._id ? { ...p, status: 'closed' } : p)
+        );
+        setShowDealModal(false);
+      }
+    } catch {} finally {
+      setDealSaving(false);
+    }
+  }
+
+  async function handleExport() {
+    const res = await fetch('/api/export?type=prospects');
+    if (res.ok) {
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `prospects-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
     }
   }
 
@@ -112,6 +165,9 @@ export default function PipelinePage() {
           <p className="text-sm text-gray-500">
             {totalInPipeline} prospects in pipeline · {conversionRate}% conversion rate
           </p>
+          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
+            <Download className="h-4 w-4" /> Export CSV
+          </button>
         </div>
 
         {/* Kanban Board */}
@@ -178,6 +234,47 @@ export default function PipelinePage() {
           ))}
         </div>
       </div>
+
+      {/* Close Deal Modal */}
+      {showDealModal && dealProspect && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowDealModal(false)} />
+          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900">Close Deal</h2>
+              <button onClick={() => setShowDealModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-600">
+                Closing deal with <strong>{dealProspect.firstName} {dealProspect.lastName}</strong> at {dealProspect.company}
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Deal Value (USD) *</label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input type="number" value={dealValue} onChange={e => setDealValue(e.target.value)}
+                    placeholder="5000" className="input-field pl-9" min="0" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea value={dealNotes} onChange={e => setDealNotes(e.target.value)}
+                  placeholder="Services sold, timeline, etc." rows={3} className="input-field resize-none" />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button onClick={() => setShowDealModal(false)} className="btn-secondary">Cancel</button>
+                <button onClick={handleCloseDeal} disabled={!dealValue || dealSaving}
+                  className="btn-primary gap-2 disabled:opacity-50">
+                  {dealSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Close Deal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

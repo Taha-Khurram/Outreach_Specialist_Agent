@@ -5,7 +5,7 @@ import Header from '@/components/layout/Header';
 import { EmptyState } from '@/components/ui/EmptyState';
 import {
   Users, Mail, MessageSquare, Calendar, TrendingUp, Zap,
-  Loader2, RefreshCw, CheckCircle, Send, ArrowRight,
+  Loader2, RefreshCw, CheckCircle, Send, ArrowRight, Target, Lightbulb,
 } from 'lucide-react';
 import { PerformanceChart } from '@/components/ui/PerformanceChart';
 
@@ -33,9 +33,24 @@ interface Activity {
   prospect?: { firstName: string; lastName: string; company: string } | null;
 }
 
+interface Suggestion {
+  prospectId: string;
+  firstName: string;
+  lastName: string;
+  company: string;
+  status: string;
+  score?: number;
+  priority: number;
+  reason: string;
+  daysSinceContact: number | null;
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [activity, setActivity] = useState<Activity[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [aiInsight, setAiInsight] = useState('');
+  const [deals, setDeals] = useState<{ totalRevenue: number; totalDeals: number; goal: number }>({ totalRevenue: 0, totalDeals: 0, goal: 2 });
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [cronResult, setCronResult] = useState('');
@@ -47,14 +62,25 @@ export default function DashboardPage() {
   async function fetchData() {
     setLoading(true);
     try {
-      const [statsRes, activityRes] = await Promise.all([
+      const [statsRes, activityRes, suggestionsRes, dealsRes] = await Promise.all([
         fetch('/api/stats'),
         fetch('/api/activity?limit=10'),
+        fetch('/api/suggestions'),
+        fetch('/api/deals'),
       ]);
       if (statsRes.ok) setStats(await statsRes.json());
       if (activityRes.ok) {
         const data = await activityRes.json();
         setActivity(data.activities || []);
+      }
+      if (suggestionsRes.ok) {
+        const data = await suggestionsRes.json();
+        setSuggestions(data.suggestions || []);
+        setAiInsight(data.aiInsight || '');
+      }
+      if (dealsRes.ok) {
+        const data = await dealsRes.json();
+        setDeals(data.summary || { totalRevenue: 0, totalDeals: 0, goal: 2 });
       }
     } catch {} finally {
       setLoading(false);
@@ -199,6 +225,61 @@ export default function DashboardPage() {
               <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-amber-100">
                 <Calendar className="h-6 w-6 text-amber-600" />
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Goal Tracker + AI Suggestions */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="card">
+            <div className="flex items-center gap-2 mb-4">
+              <Target className="h-5 w-5 text-emerald-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Goal: Close {deals.goal} Clients</h2>
+            </div>
+            <div className="flex items-center gap-4 mb-3">
+              <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-500 rounded-full transition-all"
+                  style={{ width: `${Math.min((deals.totalDeals / deals.goal) * 100, 100)}%` }} />
+              </div>
+              <span className="text-lg font-bold text-gray-900">{deals.totalDeals}/{deals.goal}</span>
+            </div>
+            {deals.totalRevenue > 0 && (
+              <p className="text-sm text-gray-600">Total revenue: <span className="font-semibold text-emerald-600">${deals.totalRevenue.toLocaleString()}</span></p>
+            )}
+            {deals.totalDeals >= deals.goal ? (
+              <p className="text-sm font-medium text-emerald-600 mt-2">Goal achieved!</p>
+            ) : (
+              <p className="text-sm text-gray-500 mt-2">{deals.goal - deals.totalDeals} more client{deals.goal - deals.totalDeals !== 1 ? 's' : ''} to go. Deadline: June 30, 2026</p>
+            )}
+          </div>
+
+          <div className="card">
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb className="h-5 w-5 text-amber-500" />
+              <h2 className="text-lg font-semibold text-gray-900">Smart Suggestions</h2>
+            </div>
+            {aiInsight && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 mb-3">
+                <p className="text-sm text-amber-800">{aiInsight}</p>
+              </div>
+            )}
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {suggestions.slice(0, 5).map(s => (
+                <div key={s.prospectId} className="flex items-center justify-between py-1.5">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{s.firstName} {s.lastName} · {s.company}</p>
+                    <p className="text-xs text-gray-500">{s.reason}</p>
+                  </div>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                    s.priority >= 80 ? 'bg-red-100 text-red-700' :
+                    s.priority >= 60 ? 'bg-amber-100 text-amber-700' :
+                    'bg-gray-100 text-gray-600'
+                  }`}>{s.priority}</span>
+                </div>
+              ))}
+              {suggestions.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-4">No suggestions yet — add prospects first</p>
+              )}
             </div>
           </div>
         </div>

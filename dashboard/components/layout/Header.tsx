@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, Search, User, Settings, LogOut, ChevronDown, X, CheckCircle, Mail, MessageSquare } from 'lucide-react';
+import { Bell, Search, User, Settings, LogOut, ChevronDown, X, CheckCircle, Mail, MessageSquare, DollarSign } from 'lucide-react';
 
 interface UserData {
   name: string;
@@ -12,19 +12,12 @@ interface UserData {
 
 interface Notification {
   id: string;
-  type: 'reply' | 'meeting' | 'campaign' | 'system';
+  type: 'reply' | 'meeting' | 'campaign' | 'system' | 'deal';
   title: string;
   description: string;
   time: string;
   read: boolean;
 }
-
-const mockNotifications: Notification[] = [
-  { id: '1', type: 'reply', title: 'New reply received', description: 'John Smith from Acme Corp replied positively', time: '2 min ago', read: false },
-  { id: '2', type: 'meeting', title: 'Meeting scheduled', description: 'Sarah Lee confirmed for Thursday 2pm', time: '1 hour ago', read: false },
-  { id: '3', type: 'campaign', title: 'Campaign completed', description: 'Q1 Outreach finished — 24 emails sent', time: '3 hours ago', read: true },
-  { id: '4', type: 'system', title: 'Agent check complete', description: 'No new replies found in last scan', time: '5 hours ago', read: true },
-];
 
 function getInitials(name: string): string {
   return name
@@ -36,18 +29,41 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
+function formatTimeAgo(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) > 1 ? 's' : ''} ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) > 1 ? 's' : ''} ago`;
+  return date.toLocaleDateString();
+}
+
 export default function Header({ title }: { title: string }) {
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const [searchFocused, setSearchFocused] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !readIds.has(n.id)).length;
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch('/api/notifications');
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications || []);
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -55,6 +71,12 @@ export default function Header({ title }: { title: string }) {
       .then(data => { if (data?.user) setUser(data.user); })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -70,11 +92,11 @@ export default function Header({ title }: { title: string }) {
   }, []);
 
   function markAllRead() {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setReadIds(new Set(notifications.map(n => n.id)));
   }
 
   function markRead(id: string) {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    setReadIds(prev => new Set(prev).add(id));
   }
 
   async function handleLogout() {
@@ -88,6 +110,7 @@ export default function Header({ title }: { title: string }) {
       case 'reply': return <MessageSquare className="h-4 w-4 text-emerald-600" />;
       case 'meeting': return <CheckCircle className="h-4 w-4 text-brand-600" />;
       case 'campaign': return <Mail className="h-4 w-4 text-brand-700" />;
+      case 'deal': return <DollarSign className="h-4 w-4 text-amber-600" />;
       default: return <Bell className="h-4 w-4 text-gray-500" />;
     }
   }
@@ -126,7 +149,7 @@ export default function Header({ title }: { title: string }) {
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center ring-2 ring-white">
-                  {unreadCount}
+                  {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
             </button>
@@ -152,29 +175,33 @@ export default function Header({ title }: { title: string }) {
                     <div className="px-4 py-8 text-center">
                       <Bell className="h-8 w-8 text-gray-300 mx-auto mb-2" />
                       <p className="text-sm text-gray-500">No notifications yet</p>
+                      <p className="text-xs text-gray-400 mt-1">Activity will appear here as you use the platform</p>
                     </div>
                   ) : (
-                    notifications.map(n => (
-                      <button
-                        key={n.id}
-                        onClick={() => markRead(n.id)}
-                        className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors ${!n.read ? 'bg-brand-50/30' : ''}`}
-                      >
-                        <div className={`mt-0.5 h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${!n.read ? 'bg-brand-100' : 'bg-gray-100'}`}>
-                          {getNotifIcon(n.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className={`text-sm truncate ${!n.read ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'}`}>
-                              {n.title}
-                            </p>
-                            {!n.read && <div className="h-2 w-2 rounded-full bg-brand-500 shrink-0" />}
+                    notifications.map(n => {
+                      const isRead = readIds.has(n.id);
+                      return (
+                        <button
+                          key={n.id}
+                          onClick={() => markRead(n.id)}
+                          className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors ${!isRead ? 'bg-brand-50/30' : ''}`}
+                        >
+                          <div className={`mt-0.5 h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${!isRead ? 'bg-brand-100' : 'bg-gray-100'}`}>
+                            {getNotifIcon(n.type)}
                           </div>
-                          <p className="text-xs text-gray-500 truncate mt-0.5">{n.description}</p>
-                          <p className="text-[11px] text-gray-400 mt-1">{n.time}</p>
-                        </div>
-                      </button>
-                    ))
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className={`text-sm truncate ${!isRead ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'}`}>
+                                {n.title}
+                              </p>
+                              {!isRead && <div className="h-2 w-2 rounded-full bg-brand-500 shrink-0" />}
+                            </div>
+                            <p className="text-xs text-gray-500 truncate mt-0.5">{n.description}</p>
+                            <p className="text-[11px] text-gray-400 mt-1">{formatTimeAgo(n.time)}</p>
+                          </div>
+                        </button>
+                      );
+                    })
                   )}
                 </div>
               </div>

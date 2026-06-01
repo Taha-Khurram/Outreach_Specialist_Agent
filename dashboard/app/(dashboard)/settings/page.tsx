@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
-import { Save, Key, Mail, Globe, Bot, Bell, Loader2 } from 'lucide-react';
+import { Save, Key, Mail, Globe, Bot, Bell, Target, Loader2 } from 'lucide-react';
 
 interface SettingsState {
   apiKeys: {
@@ -34,6 +34,9 @@ interface SettingsState {
     replyCheckInterval: number;
     reportTime: string;
   };
+  goals: {
+    monthlyDealTarget: number;
+  };
 }
 
 const defaultSettings: SettingsState = {
@@ -42,6 +45,7 @@ const defaultSettings: SettingsState = {
   ai: { model: 'gemini-3-flash-preview', confidenceThreshold: 0.8, autoReplyPositive: true, autoUnsubscribe: true },
   targeting: { titles: ['CEO', 'CTO', 'VP Engineering', 'Founder'], industries: ['SaaS', 'E-commerce', 'FinTech', 'HealthTech'], companySize: '10-200 employees', location: 'United States' },
   schedule: { discoveryTime: '09:00', emailSendTime: '10:00', replyCheckInterval: 5, reportTime: '18:00' },
+  goals: { monthlyDealTarget: 2 },
 };
 
 export default function SettingsPage() {
@@ -65,6 +69,7 @@ export default function SettingsPage() {
         ai: data.settings.ai || defaultSettings.ai,
         targeting: data.settings.targeting || defaultSettings.targeting,
         schedule: data.settings.schedule || defaultSettings.schedule,
+        goals: data.settings.goals || defaultSettings.goals,
       });
     } catch {
       setMessage({ type: 'error', text: 'Failed to load settings. Using defaults.' });
@@ -407,6 +412,33 @@ export default function SettingsPage() {
                 onChange={e => updateSection('schedule', 'reportTime', e.target.value)}
                 className="input-field"
               />
+            </div>
+          </div>
+        </section>
+
+        {/* Goals */}
+        <section className="card">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-10 w-10 rounded-lg bg-rose-50 flex items-center justify-center">
+              <Target className="h-5 w-5 text-rose-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Goals</h2>
+              <p className="text-sm text-gray-500">Set your monthly targets</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Monthly Deal Target</label>
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={settings.goals.monthlyDealTarget}
+                onChange={e => updateSection('goals', 'monthlyDealTarget', Number(e.target.value))}
+                className="input-field"
+              />
+              <p className="text-xs text-gray-400 mt-1">Number of deals you aim to close per month</p>
             </div>
           </div>
         </section>

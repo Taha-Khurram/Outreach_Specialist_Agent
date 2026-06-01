@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import {
   Loader2, Search, X, UserPlus, Building2, MapPin, Briefcase,
-  ChevronLeft, ChevronRight, Check, Globe,
+  ChevronLeft, ChevronRight, Check, Globe, Sparkles, Database,
 } from 'lucide-react';
 
 interface DiscoverButtonProps {
@@ -43,6 +43,8 @@ const defaultFilters: SearchFilters = {
   domains: '',
 };
 
+type DiscoverSource = 'auto' | 'apollo' | 'ai';
+
 export function DiscoverButton({ onComplete, className }: DiscoverButtonProps) {
   const [showModal, setShowModal] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>(defaultFilters);
@@ -54,6 +56,8 @@ export function DiscoverButton({ onComplete, className }: DiscoverButtonProps) {
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<{ total: number; totalPages: number } | null>(null);
   const [importResult, setImportResult] = useState<{ created: number; skipped: number } | null>(null);
+  const [source, setSource] = useState<DiscoverSource>('auto');
+  const [activeSource, setActiveSource] = useState<string>('');
 
   function openModal() {
     setShowModal(true);
@@ -63,6 +67,7 @@ export function DiscoverButton({ onComplete, className }: DiscoverButtonProps) {
     setImportResult(null);
     setPagination(null);
     setPage(1);
+    setActiveSource('');
   }
 
   function buildTargeting() {
@@ -87,17 +92,25 @@ export function DiscoverButton({ onComplete, className }: DiscoverButtonProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mode: 'search',
+          source,
           targeting: buildTargeting(),
           page: searchPage,
           perPage: 25,
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Search failed');
+      if (!res.ok) {
+        if (data.suggestion === 'ai') {
+          setSource('ai');
+          throw new Error(data.error + ' Switching to AI mode.');
+        }
+        throw new Error(data.error || 'Search failed');
+      }
       setResults(data.results || []);
       setPagination(data.pagination || null);
       setPage(searchPage);
       setSelected(new Set());
+      setActiveSource(data.source || '');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -115,6 +128,7 @@ export function DiscoverButton({ onComplete, className }: DiscoverButtonProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mode: 'import',
+          source,
           targeting: buildTargeting(),
           selectedIds: Array.from(selected),
           page,
@@ -125,7 +139,6 @@ export function DiscoverButton({ onComplete, className }: DiscoverButtonProps) {
       if (!res.ok) throw new Error(data.error || 'Import failed');
       setImportResult({ created: data.created, skipped: data.skipped });
       onComplete?.(data);
-      // Remove imported from results
       setResults(prev => prev.filter(r => !selected.has(r.apolloId)));
       setSelected(new Set());
     } catch (err: any) {
@@ -162,7 +175,7 @@ export function DiscoverButton({ onComplete, className }: DiscoverButtonProps) {
             <div className="flex items-center justify-between p-5 border-b">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">Prospect Discovery</h2>
-                <p className="text-sm text-gray-500 mt-0.5">Search Apollo database to find and import leads</p>
+                <p className="text-sm text-gray-500 mt-0.5">Find and import leads using AI or Apollo</p>
               </div>
               <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100" aria-label="Close">
                 <X className="h-5 w-5" />
@@ -170,6 +183,44 @@ export function DiscoverButton({ onComplete, className }: DiscoverButtonProps) {
             </div>
 
             <div className="p-5 space-y-5">
+              {/* Source Selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-500">Source:</span>
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                  <button
+                    onClick={() => setSource('auto')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+                      source === 'auto' ? 'bg-brand-50 text-brand-700 border-r border-gray-200' : 'text-gray-600 hover:bg-gray-50 border-r border-gray-200'
+                    }`}
+                  >
+                    Auto
+                  </button>
+                  <button
+                    onClick={() => setSource('ai')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+                      source === 'ai' ? 'bg-purple-50 text-purple-700 border-r border-gray-200' : 'text-gray-600 hover:bg-gray-50 border-r border-gray-200'
+                    }`}
+                  >
+                    <Sparkles className="h-3 w-3" /> AI Discovery
+                  </button>
+                  <button
+                    onClick={() => setSource('apollo')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+                      source === 'apollo' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Database className="h-3 w-3" /> Apollo
+                  </button>
+                </div>
+                {activeSource && (
+                  <span className={`text-[11px] px-2 py-0.5 rounded-full ${
+                    activeSource === 'ai' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    Using {activeSource === 'ai' ? 'AI' : 'Apollo'}
+                  </span>
+                )}
+              </div>
+
               {/* Search Filters */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 <div>
@@ -252,8 +303,8 @@ export function DiscoverButton({ onComplete, className }: DiscoverButtonProps) {
                   disabled={searching}
                   className="btn-primary gap-2 disabled:opacity-50"
                 >
-                  {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                  {searching ? 'Searching...' : 'Search Apollo'}
+                  {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : (source === 'ai' ? <Sparkles className="h-4 w-4" /> : <Search className="h-4 w-4" />)}
+                  {searching ? 'Searching...' : source === 'ai' ? 'Discover with AI' : source === 'apollo' ? 'Search Apollo' : 'Search'}
                 </button>
                 {pagination && (
                   <span className="text-sm text-gray-500">

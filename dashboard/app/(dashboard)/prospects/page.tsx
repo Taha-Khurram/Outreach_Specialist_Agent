@@ -36,6 +36,7 @@ const statuses = ['all', 'new', 'contacted', 'replied', 'meeting', 'closed', 'un
 const emptyForm = {
   firstName: '', lastName: '', email: '', title: '', company: '',
   industry: '', techStack: '', companySize: '', linkedinUrl: '', notes: '',
+  funding: '', fundingAmount: '', status: 'new',
 };
 
 export default function ProspectsPage() {
@@ -47,6 +48,7 @@ export default function ProspectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortByScore, setSortByScore] = useState(false);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -60,7 +62,7 @@ export default function ProspectsPage() {
   const fetchProspects = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ limit: '100' });
+      const params = new URLSearchParams({ limit: '25', page: page.toString() });
       if (statusFilter !== 'all') params.set('status', statusFilter);
       const res = await fetch(`/api/prospects?${params}`);
       if (!res.ok) throw new Error();
@@ -72,7 +74,7 @@ export default function ProspectsPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, [statusFilter, page]);
 
   useEffect(() => { fetchProspects(); }, [fetchProspects]);
 
@@ -101,6 +103,8 @@ export default function ProspectsPage() {
       firstName: p.firstName, lastName: p.lastName, email: p.email, title: p.title,
       company: p.company, industry: p.industry, techStack: p.techStack.join(', '),
       companySize: p.companySize?.toString() || '', linkedinUrl: p.linkedinUrl, notes: p.notes,
+      funding: (p as any).funding || '', fundingAmount: (p as any).fundingAmount?.toString() || '',
+      status: p.status || 'new',
     });
     setError(''); setShowModal(true);
   }
@@ -117,6 +121,9 @@ export default function ProspectsPage() {
       techStack: form.techStack.split(',').map(s => s.trim()).filter(Boolean),
       companySize: form.companySize ? Number(form.companySize) : null,
       linkedinUrl: form.linkedinUrl, notes: form.notes,
+      funding: form.funding || undefined,
+      fundingAmount: form.fundingAmount ? Number(form.fundingAmount) : undefined,
+      ...(editingId && { status: form.status }),
     };
     try {
       const url = editingId ? `/api/prospects/${editingId}` : '/api/prospects';
@@ -268,6 +275,30 @@ export default function ProspectsPage() {
               </tbody>
             </table>
           )}
+          {/* Pagination */}
+          {total > 25 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t">
+              <p className="text-sm text-gray-500">
+                Showing {(page - 1) * 25 + 1}–{Math.min(page * 25, total)} of {total}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={page * 25 >= total}
+                  className="px-3 py-1.5 text-sm border rounded-lg disabled:opacity-40 hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -297,6 +328,24 @@ export default function ProspectsPage() {
               </div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Tech Stack</label><input type="text" value={form.techStack} onChange={e => setForm({ ...form, techStack: e.target.value })} placeholder="React, Node.js, AWS (comma-separated)" className="input-field" /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn URL</label><input type="url" value={form.linkedinUrl} onChange={e => setForm({ ...form, linkedinUrl: e.target.value })} placeholder="https://linkedin.com/in/..." className="input-field" /></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Funding Round</label><input type="text" value={form.funding} onChange={e => setForm({ ...form, funding: e.target.value })} placeholder="Series A, Seed..." className="input-field" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Funding Amount</label><input type="number" value={form.fundingAmount} onChange={e => setForm({ ...form, fundingAmount: e.target.value })} placeholder="5000000" className="input-field" /></div>
+              </div>
+              {editingId && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="input-field">
+                    <option value="new">New</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="replied">Replied</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="closed">Closed</option>
+                    <option value="unsubscribed">Unsubscribed</option>
+                    <option value="bounced">Bounced</option>
+                  </select>
+                </div>
+              )}
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Notes</label><textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} placeholder="Any relevant notes..." className="input-field resize-none" /></div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Cancel</button>

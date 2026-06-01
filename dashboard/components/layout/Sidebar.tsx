@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  LayoutDashboard, Users, Mail, MessageSquare, LogOut, Zap, Kanban,
+  LayoutDashboard, Users, Mail, MessageSquare, LogOut, Zap, Kanban, FileText,
 } from 'lucide-react';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Prospects', href: '/prospects', icon: Users },
   { name: 'Campaigns', href: '/campaigns', icon: Mail },
+  { name: 'Templates', href: '/templates', icon: FileText },
   { name: 'Pipeline', href: '/pipeline', icon: Kanban },
   { name: 'Replies', href: '/replies', icon: MessageSquare },
 ];

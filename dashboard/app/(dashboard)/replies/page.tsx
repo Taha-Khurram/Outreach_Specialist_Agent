@@ -48,23 +48,26 @@ export default function RepliesPage() {
   const [replyingTo, setReplyingTo] = useState<ReplyInteraction | null>(null);
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalRepliesCount, setTotalRepliesCount] = useState(0);
 
   const fetchReplies = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ limit: '50' });
+      const params = new URLSearchParams({ limit: '25', offset: ((page - 1) * 25).toString() });
       if (filter !== 'all') params.set('classification', filter);
       const res = await fetch(`/api/replies?${params}`);
       if (!res.ok) throw new Error();
       const data = await res.json();
       setReplies(data.replies);
       setCounts(data.counts || {});
+      setTotalRepliesCount(data.total || data.replies.length);
     } catch {
       setReplies([]);
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, page]);
 
   useEffect(() => { fetchReplies(); }, [fetchReplies]);
 
@@ -251,6 +254,30 @@ export default function RepliesPage() {
             })
           )}
         </div>
+        {/* Pagination */}
+        {totalRepliesCount > 25 && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Showing {(page - 1) * 25 + 1}–{Math.min(page * 25, totalRepliesCount)} of {totalRepliesCount}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="btn-secondary text-sm disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage(p => p + 1)}
+                disabled={page * 25 >= totalRepliesCount}
+                className="btn-secondary text-sm disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Reply Modal */}

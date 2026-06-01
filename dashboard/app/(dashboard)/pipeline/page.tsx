@@ -38,6 +38,10 @@ export default function PipelinePage() {
   const [dealValue, setDealValue] = useState('');
   const [dealNotes, setDealNotes] = useState('');
   const [dealSaving, setDealSaving] = useState(false);
+  const [dealCurrency, setDealCurrency] = useState('USD');
+  const [dealServices, setDealServices] = useState('');
+  const [dealStatus, setDealStatus] = useState<'won' | 'lost' | 'negotiating'>('won');
+  const [dealCloseDate, setDealCloseDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     fetchProspects();
@@ -95,13 +99,17 @@ export default function PipelinePage() {
         body: JSON.stringify({
           prospectId: dealProspect._id,
           value: Number(dealValue),
-          status: 'won',
+          currency: dealCurrency,
+          status: dealStatus,
+          services: dealServices.split(',').map(s => s.trim()).filter(Boolean),
+          closeDate: dealCloseDate,
           notes: dealNotes,
         }),
       });
       if (res.ok) {
+        const newStatus = dealStatus === 'won' ? 'closed' : dealProspect.status;
         setProspects(prev =>
-          prev.map(p => p._id === dealProspect._id ? { ...p, status: 'closed' } : p)
+          prev.map(p => p._id === dealProspect._id ? { ...p, status: newStatus } : p)
         );
         setShowDealModal(false);
       }
@@ -248,29 +256,59 @@ export default function PipelinePage() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               <p className="text-sm text-gray-600">
                 Closing deal with <strong>{dealProspect.firstName} {dealProspect.lastName}</strong> at {dealProspect.company}
               </p>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Deal Value (USD) *</label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input type="number" value={dealValue} onChange={e => setDealValue(e.target.value)}
-                    placeholder="5000" className="input-field pl-9" min="0" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+                <select value={dealStatus} onChange={e => setDealStatus(e.target.value as any)} className="input-field">
+                  <option value="won">Won</option>
+                  <option value="negotiating">Negotiating</option>
+                  <option value="lost">Lost</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Deal Value *</label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input type="number" value={dealValue} onChange={e => setDealValue(e.target.value)}
+                      placeholder="5000" className="input-field pl-9" min="0" />
+                  </div>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                  <select value={dealCurrency} onChange={e => setDealCurrency(e.target.value)} className="input-field">
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="CAD">CAD</option>
+                    <option value="AUD">AUD</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Close Date</label>
+                <input type="date" value={dealCloseDate} onChange={e => setDealCloseDate(e.target.value)} className="input-field" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Services</label>
+                <input type="text" value={dealServices} onChange={e => setDealServices(e.target.value)}
+                  placeholder="Web dev, Mobile app, API integration" className="input-field" />
+                <p className="text-xs text-gray-400 mt-1">Comma-separated list of services sold</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                 <textarea value={dealNotes} onChange={e => setDealNotes(e.target.value)}
-                  placeholder="Services sold, timeline, etc." rows={3} className="input-field resize-none" />
+                  placeholder="Additional context..." rows={3} className="input-field resize-none" />
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button onClick={() => setShowDealModal(false)} className="btn-secondary">Cancel</button>
                 <button onClick={handleCloseDeal} disabled={!dealValue || dealSaving}
                   className="btn-primary gap-2 disabled:opacity-50">
                   {dealSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Close Deal
+                  {dealStatus === 'won' ? 'Close Deal' : dealStatus === 'lost' ? 'Mark Lost' : 'Save Deal'}
                 </button>
               </div>
             </div>

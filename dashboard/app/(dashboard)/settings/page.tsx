@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
-import { Save, Key, Mail, Globe, Bot, Bell, Target, Loader2 } from 'lucide-react';
+import { Save, Key, Mail, Globe, Bot, Bell, Target, Loader2, Zap, FileBarChart, ShieldAlert, Forward } from 'lucide-react';
 
 interface SettingsState {
   apiKeys: {
@@ -240,6 +240,13 @@ export default function SettingsPage() {
               />
             </div>
           </div>
+          {settings.email.calendlyLink && (
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-xs font-medium text-gray-600 mb-1">Calendly Webhook URL</p>
+              <code className="text-xs text-gray-500 break-all select-all">{typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/calendly` : '/api/webhooks/calendly'}</code>
+              <p className="text-xs text-gray-400 mt-1">Add this URL in your Calendly webhook settings to auto-track meetings.</p>
+            </div>
+          )}
         </section>
 
         {/* AI Settings */}
@@ -443,6 +450,39 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* Operations */}
+        <section className="card">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-10 w-10 rounded-lg bg-orange-50 flex items-center justify-center">
+              <Zap className="h-5 w-5 text-orange-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Manual Operations</h2>
+              <p className="text-sm text-gray-500">Trigger background tasks on demand</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <OperationButton
+              icon={<FileBarChart className="h-4 w-4" />}
+              label="Generate Weekly Report"
+              description="Compile and email a summary of the past 7 days"
+              endpoint="/api/reports/weekly"
+            />
+            <OperationButton
+              icon={<ShieldAlert className="h-4 w-4" />}
+              label="Check Bounces"
+              description="Scan inbox for bounce notifications and update prospects"
+              endpoint="/api/bounces"
+            />
+            <OperationButton
+              icon={<Forward className="h-4 w-4" />}
+              label="Process Follow-ups"
+              description="Send pending campaign follow-up emails now"
+              endpoint="/api/campaigns/process"
+            />
+          </div>
+        </section>
+
         {/* Save Button */}
         <div className="flex justify-end">
           <button
@@ -456,5 +496,48 @@ export default function SettingsPage() {
         </div>
       </div>
     </>
+  );
+}
+
+function OperationButton({ icon, label, description, endpoint }: { icon: React.ReactNode; label: string; description: string; endpoint: string }) {
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  async function handleRun() {
+    setRunning(true);
+    setResult(null);
+    try {
+      const res = await fetch(endpoint, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      const summary = data.skipped
+        ? `Skipped: ${data.reason}`
+        : Object.entries(data).filter(([k]) => k !== 'period' && k !== 'pipeline').map(([k, v]) => typeof v === 'number' || typeof v === 'string' ? `${k}: ${v}` : null).filter(Boolean).join(', ');
+      setResult({ type: 'success', text: summary || 'Done' });
+    } catch (err: any) {
+      setResult({ type: 'error', text: err.message });
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-4 space-y-2">
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className="text-sm font-medium text-gray-900">{label}</span>
+      </div>
+      <p className="text-xs text-gray-500">{description}</p>
+      <button onClick={handleRun} disabled={running}
+        className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors">
+        {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+        {running ? 'Running...' : 'Run Now'}
+      </button>
+      {result && (
+        <p className={`text-xs mt-1 ${result.type === 'success' ? 'text-emerald-600' : 'text-red-600'}`}>
+          {result.text}
+        </p>
+      )}
+    </div>
   );
 }

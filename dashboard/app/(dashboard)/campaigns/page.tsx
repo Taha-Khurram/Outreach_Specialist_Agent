@@ -8,14 +8,21 @@ import { StatusBadge } from '@/components/ui/Badge';
 import { useToast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import {
-  Mail, Plus, Edit2, Trash2, X, Loader2, Play, Pause, BarChart3, FileText,
+  Mail, Plus, Edit2, Trash2, X, Loader2, Play, Pause, BarChart3, FileText, Split,
 } from 'lucide-react';
+
+interface StepVariant {
+  subject: string;
+  body: string;
+  weight: number;
+}
 
 interface CampaignStep {
   stepNumber: number;
   subject: string;
   body: string;
   delayDays: number;
+  variants?: StepVariant[];
 }
 
 interface Campaign {
@@ -53,6 +60,8 @@ export default function CampaignsPage() {
   const [name, setName] = useState('');
   const [steps, setSteps] = useState<CampaignStep[]>([{ stepNumber: 1, subject: '', body: '', delayDays: 0 }]);
   const [dailyLimit, setDailyLimit] = useState(20);
+  const [sendWindowStart, setSendWindowStart] = useState(9);
+  const [sendWindowEnd, setSendWindowEnd] = useState(17);
   const [selectedProspects, setSelectedProspects] = useState<string[]>([]);
   const [availableProspects, setAvailableProspects] = useState<ProspectOption[]>([]);
   const [prospectSearch, setProspectSearch] = useState('');
@@ -120,8 +129,13 @@ export default function CampaignsPage() {
   function openEdit(campaign: Campaign) {
     setEditingId(campaign._id);
     setName(campaign.name);
-    setSteps(campaign.steps.length ? campaign.steps : [{ stepNumber: 1, subject: '', body: '', delayDays: 0 }]);
+    setSteps(campaign.steps.length ? campaign.steps.map(s => ({
+      ...s,
+      variants: s.variants || undefined,
+    })) : [{ stepNumber: 1, subject: '', body: '', delayDays: 0 }]);
     setDailyLimit(campaign.settings?.dailyLimit || 20);
+    setSendWindowStart(campaign.settings?.sendWindow?.start || 9);
+    setSendWindowEnd(campaign.settings?.sendWindow?.end || 17);
     setSelectedProspects(campaign.prospects.map((p: any) => p.prospectId || p));
     setError('');
     setShowModal(true);
@@ -144,6 +158,29 @@ export default function CampaignsPage() {
     setSteps(updated);
   }
 
+  function addVariant(stepIndex: number) {
+    const updated = [...steps];
+    const variants = updated[stepIndex].variants || [];
+    updated[stepIndex] = { ...updated[stepIndex], variants: [...variants, { subject: '', body: '', weight: 50 }] };
+    setSteps(updated);
+  }
+
+  function removeVariant(stepIndex: number, variantIndex: number) {
+    const updated = [...steps];
+    const variants = [...(updated[stepIndex].variants || [])];
+    variants.splice(variantIndex, 1);
+    updated[stepIndex] = { ...updated[stepIndex], variants: variants.length > 0 ? variants : undefined };
+    setSteps(updated);
+  }
+
+  function updateVariant(stepIndex: number, variantIndex: number, field: keyof StepVariant, value: any) {
+    const updated = [...steps];
+    const variants = [...(updated[stepIndex].variants || [])];
+    variants[variantIndex] = { ...variants[variantIndex], [field]: value };
+    updated[stepIndex] = { ...updated[stepIndex], variants };
+    setSteps(updated);
+  }
+
   function toggleProspect(id: string) {
     setSelectedProspects(prev =>
       prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
@@ -163,7 +200,7 @@ export default function CampaignsPage() {
       name: name.trim(),
       steps,
       prospectIds: selectedProspects,
-      settings: { dailyLimit, sendWindow: { start: 9, end: 17 } },
+      settings: { dailyLimit, sendWindow: { start: sendWindowStart, end: sendWindowEnd } },
     };
 
     try {
@@ -425,6 +462,45 @@ export default function CampaignsPage() {
                         className="input-field text-sm resize-none"
                       />
                       <p className="text-xs text-gray-400">Variables: {'{{firstName}}'}, {'{{lastName}}'}, {'{{company}}'}, {'{{title}}'}, {'{{industry}}'}, {'{{techStack}}'}</p>
+
+                      {/* A/B Variants */}
+                      {step.variants && step.variants.length > 0 && (
+                        <div className="mt-3 space-y-3 border-t border-gray-200 pt-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-gray-500">Original weight: 50</span>
+                          </div>
+                          {step.variants.map((variant, vi) => (
+                            <div key={vi} className="border border-purple-200 rounded-lg p-3 bg-purple-50/50 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-semibold text-purple-700">Variant {String.fromCharCode(66 + vi)}</span>
+                                <div className="flex items-center gap-2">
+                                  <label className="flex items-center gap-1 text-xs text-gray-500">
+                                    Weight:
+                                    <input type="number" min={1} max={100} value={variant.weight}
+                                      onChange={e => updateVariant(i, vi, 'weight', Number(e.target.value))}
+                                      className="w-14 px-2 py-1 border rounded text-xs" />
+                                  </label>
+                                  <button type="button" onClick={() => removeVariant(i, vi)} className="text-gray-400 hover:text-red-500">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                              <input type="text" value={variant.subject}
+                                onChange={e => updateVariant(i, vi, 'subject', e.target.value)}
+                                placeholder="Variant subject line"
+                                className="input-field text-sm" />
+                              <textarea value={variant.body}
+                                onChange={e => updateVariant(i, vi, 'body', e.target.value)}
+                                placeholder="Variant email body"
+                                rows={3} className="input-field text-sm resize-none" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <button type="button" onClick={() => addVariant(i)}
+                        className="mt-2 flex items-center gap-1 text-xs font-medium text-purple-600 hover:text-purple-700">
+                        <Split className="h-3 w-3" /> Add A/B Variant
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -472,10 +548,29 @@ export default function CampaignsPage() {
               </div>
 
               {/* Settings */}
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Daily Send Limit</label>
-                <input type="number" min={1} max={100} value={dailyLimit} onChange={e => setDailyLimit(Number(e.target.value))} className="input-field w-24 text-sm" />
-                <p className="text-xs text-gray-400 mt-1">Maximum emails sent per day for this campaign.</p>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">Daily Send Limit</label>
+                  <input type="number" min={1} max={100} value={dailyLimit} onChange={e => setDailyLimit(Number(e.target.value))} className="input-field w-24 text-sm" />
+                  <p className="text-xs text-gray-400 mt-1">Maximum emails sent per day for this campaign.</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">Send Window</label>
+                  <div className="flex items-center gap-2">
+                    <select value={sendWindowStart} onChange={e => setSendWindowStart(Number(e.target.value))} className="input-field w-24 text-sm">
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <option key={i} value={i}>{i.toString().padStart(2, '0')}:00</option>
+                      ))}
+                    </select>
+                    <span className="text-sm text-gray-500">to</span>
+                    <select value={sendWindowEnd} onChange={e => setSendWindowEnd(Number(e.target.value))} className="input-field w-24 text-sm">
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <option key={i} value={i}>{i.toString().padStart(2, '0')}:00</option>
+                      ))}
+                    </select>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">Hours during which emails are sent (recipient timezone).</p>
+                </div>
               </div>
 
               {/* Actions */}

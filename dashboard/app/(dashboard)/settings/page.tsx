@@ -2,14 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
-import { Save, Key, Mail, Globe, Bot, Bell, Target, Loader2, Zap, FileBarChart, ShieldAlert, Forward } from 'lucide-react';
+import { Save, Mail, Globe, Bot, Bell, Target, Loader2, Zap, FileBarChart, ShieldAlert, Forward } from 'lucide-react';
 
 interface SettingsState {
-  apiKeys: {
-    apolloApiKey: string;
-    geminiApiKey: string;
-    googleRefreshToken: string;
-  };
   email: {
     senderEmail: string;
     senderName: string;
@@ -40,7 +35,6 @@ interface SettingsState {
 }
 
 const defaultSettings: SettingsState = {
-  apiKeys: { apolloApiKey: '', geminiApiKey: '', googleRefreshToken: '' },
   email: { senderEmail: '', senderName: '', dailySendLimit: 50, calendlyLink: '' },
   ai: { model: 'gemini-3-flash-preview', confidenceThreshold: 0.8, autoReplyPositive: true, autoUnsubscribe: true },
   targeting: { titles: ['CEO', 'CTO', 'VP Engineering', 'Founder'], industries: ['SaaS', 'E-commerce', 'FinTech', 'HealthTech'], companySize: '10-200 employees', location: 'United States' },
@@ -65,7 +59,6 @@ export default function SettingsPage() {
       const data = await res.json();
       const s = data.settings || {};
       setSettings({
-        apiKeys: { ...defaultSettings.apiKeys, ...s.apiKeys },
         email: { ...defaultSettings.email, ...s.email },
         ai: { ...defaultSettings.ai, ...s.ai },
         targeting: { ...defaultSettings.targeting, ...s.targeting },
@@ -164,51 +157,6 @@ export default function SettingsPage() {
             {message.text}
           </div>
         )}
-
-        {/* API Keys */}
-        <section className="card">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-amber-50 flex items-center justify-center">
-              <Key className="h-5 w-5 text-amber-600" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">API Keys</h2>
-              <p className="text-sm text-gray-500">Configure your service integrations</p>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Apollo.io API Key</label>
-              <input
-                type="password"
-                value={settings.apiKeys.apolloApiKey}
-                onChange={e => updateSection('apiKeys', 'apolloApiKey', e.target.value)}
-                placeholder="sk-apollo-..."
-                className="input-field"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Gemini API Key</label>
-              <input
-                type="password"
-                value={settings.apiKeys.geminiApiKey}
-                onChange={e => updateSection('apiKeys', 'geminiApiKey', e.target.value)}
-                placeholder="AIza..."
-                className="input-field"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Google OAuth Refresh Token</label>
-              <input
-                type="password"
-                value={settings.apiKeys.googleRefreshToken}
-                onChange={e => updateSection('apiKeys', 'googleRefreshToken', e.target.value)}
-                placeholder="1//..."
-                className="input-field"
-              />
-            </div>
-          </div>
-        </section>
 
         {/* Email Settings */}
         <section className="card">

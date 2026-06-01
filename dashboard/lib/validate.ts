@@ -35,11 +35,6 @@ const coercePositiveInt = (min: number, max: number, fallback: number) =>
   z.union([z.number(), z.nan()]).transform(v => (Number.isFinite(v) && v >= min ? Math.min(Math.round(v), max) : fallback));
 
 export const settingsSchema = z.object({
-  apiKeys: z.object({
-    apolloApiKey: z.string().max(500),
-    geminiApiKey: z.string().max(500),
-    googleRefreshToken: z.string().max(2000),
-  }).partial().optional(),
   email: z.object({
     senderEmail: z.string().email().or(z.literal('')).optional(),
     senderName: sanitizedString.pipe(z.string().max(100)).optional(),

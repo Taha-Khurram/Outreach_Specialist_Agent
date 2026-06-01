@@ -96,7 +96,7 @@ async function searchWithApollo(apolloApiKey: string, targeting: any, page: numb
 
 async function searchWithGemini(geminiApiKey: string, targeting: any, page: number, perPage: number) {
   const genAI = new GoogleGenerativeAI(geminiApiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
   const criteria: string[] = [];
   if (targeting.titles?.length) criteria.push(`Job titles: ${targeting.titles.join(', ')}`);

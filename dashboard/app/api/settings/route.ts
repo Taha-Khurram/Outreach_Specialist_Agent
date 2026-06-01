@@ -2,21 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Settings } from '@/models/Settings';
 import { validateBody, settingsSchema } from '@/lib/validate';
-import { encrypt, decrypt, SENSITIVE_API_KEY_FIELDS } from '@/lib/encryption';
 import { logger } from '@/lib/logger';
-
-function decryptApiKeys(settings: any) {
-  if (settings?.apiKeys) {
-    const decrypted = { ...settings, apiKeys: { ...settings.apiKeys } };
-    for (const field of SENSITIVE_API_KEY_FIELDS) {
-      if (decrypted.apiKeys[field]) {
-        decrypted.apiKeys[field] = decrypt(decrypted.apiKeys[field]);
-      }
-    }
-    return decrypted;
-  }
-  return settings;
-}
 
 export async function GET(req: NextRequest) {
   try {
@@ -30,11 +16,6 @@ export async function GET(req: NextRequest) {
     if (!settings) {
       const created = await Settings.create({
         userId,
-        apiKeys: {
-          apolloApiKey: encrypt(process.env.APOLLO_API_KEY || ''),
-          geminiApiKey: encrypt(process.env.GEMINI_API_KEY || ''),
-          googleRefreshToken: encrypt(process.env.GOOGLE_REFRESH_TOKEN || ''),
-        },
         email: {
           senderEmail: process.env.SENDER_EMAIL || '',
           senderName: process.env.SENDER_NAME || '',
@@ -45,7 +26,7 @@ export async function GET(req: NextRequest) {
       settings = created.toObject();
     }
 
-    return NextResponse.json({ settings: decryptApiKeys(settings) });
+    return NextResponse.json({ settings });
   } catch (error) {
     logger.error('GET /api/settings error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -65,17 +46,13 @@ export async function PUT(req: NextRequest) {
     await connectDB();
 
     const updateFields: Record<string, any> = {};
-    const allowedSections = ['apiKeys', 'email', 'ai', 'targeting', 'schedule', 'goals'] as const;
+    const allowedSections = ['email', 'ai', 'targeting', 'schedule', 'goals'] as const;
 
     for (const section of allowedSections) {
       if (validated[section]) {
         for (const [key, value] of Object.entries(validated[section]!)) {
           if (value !== undefined) {
-            if (section === 'apiKeys' && SENSITIVE_API_KEY_FIELDS.includes(key)) {
-              updateFields[`${section}.${key}`] = encrypt(value as string);
-            } else {
-              updateFields[`${section}.${key}`] = value;
-            }
+            updateFields[`${section}.${key}`] = value;
           }
         }
       }
@@ -87,7 +64,7 @@ export async function PUT(req: NextRequest) {
       { upsert: true, new: true, runValidators: true }
     ).lean();
 
-    return NextResponse.json({ settings: decryptApiKeys(settings) });
+    return NextResponse.json({ settings });
   } catch (error) {
     logger.error('PUT /api/settings error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

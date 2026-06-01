@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Settings } from '@/models/Settings';
 import { Prospect } from '@/models/Prospect';
+import { logger } from '@/lib/logger';
 
 function parseCompanySize(size: string): string[] {
   const cleaned = size.replace(/\s*employees?\s*/i, '').trim();
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     if (!apolloRes.ok) {
       const text = await apolloRes.text();
-      console.error('Apollo API error:', apolloRes.status, text);
+      logger.error('Apollo API error', undefined, { status: apolloRes.status, body: text });
       return NextResponse.json(
         { error: `Apollo API returned ${apolloRes.status}. Check your API key and try again.` },
         { status: 502 }
@@ -94,7 +95,7 @@ export async function POST(req: NextRequest) {
           skipped++;
         } else {
           skipped++;
-          console.error('Error creating prospect:', err.message);
+          logger.error('Error creating prospect', err);
         }
       }
     }
@@ -105,7 +106,7 @@ export async function POST(req: NextRequest) {
       skipped,
     });
   } catch (error) {
-    console.error('POST /api/discover error:', error);
+    logger.error('POST /api/discover error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

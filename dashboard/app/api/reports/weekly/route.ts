@@ -6,6 +6,7 @@ import { Campaign } from '@/models/Campaign';
 import { Deal } from '@/models/Deal';
 import { Settings } from '@/models/Settings';
 import { sendEmail } from '@/lib/gmail';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest) {
   try {
@@ -102,14 +103,14 @@ Keep pushing! 🎯`;
           });
           report.period.end = new Date().toISOString();
         } catch (err: any) {
-          console.error('Failed to send report email:', err.message);
+          logger.error('Failed to send report email:', err.message);
         }
       }
     }
 
     return NextResponse.json(report);
   } catch (error) {
-    console.error('POST /api/reports/weekly error:', error);
+    logger.error('POST /api/reports/weekly error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

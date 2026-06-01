@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import { Prospect } from '@/models/Prospect';
 import { Interaction } from '@/models/Interaction';
 import { Settings } from '@/models/Settings';
+import { logger } from '@/lib/logger';
 
 export async function GET(req: NextRequest) {
   try {
@@ -116,7 +117,7 @@ export async function GET(req: NextRequest) {
       aiInsight,
     });
   } catch (error) {
-    console.error('GET /api/suggestions error:', error);
+    logger.error('GET /api/suggestions error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Prospect } from '@/models/Prospect';
+import { logger } from '@/lib/logger';
 
 export async function GET(req: NextRequest) {
   try {
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ error: 'Invalid export type' }, { status: 400 });
   } catch (error) {
-    console.error('GET /api/export error:', error);
+    logger.error('GET /api/export error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -2,17 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { verifyPassword, generateToken } from '@/lib/auth';
 import { User } from '@/models/User';
+import { validateBody, loginSchema } from '@/lib/validate';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      );
-    }
+    const body = await req.json();
+    const validation = validateBody(loginSchema, body);
+    if (!validation.success) return validation.response;
+    const { email, password } = validation.data;
 
     await connectDB();
 
@@ -47,8 +45,8 @@ export async function POST(req: NextRequest) {
     });
 
     return response;
-  } catch (error: any) {
-    console.error('Login error:', error);
+  } catch (error) {
+    logger.error('Login error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

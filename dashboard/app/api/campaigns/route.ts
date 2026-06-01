@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Campaign } from '@/models/Campaign';
+import { validateBody, campaignSchema } from '@/lib/validate';
+import { logger } from '@/lib/logger';
 
 export async function GET(req: NextRequest) {
   try {
@@ -18,7 +20,7 @@ export async function GET(req: NextRequest) {
       total: campaigns.length,
     });
   } catch (error) {
-    console.error('GET /api/campaigns error:', error);
+    logger.error('GET /api/campaigns error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -30,22 +32,21 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
     const body = await req.json();
+    const validation = validateBody(campaignSchema, body);
+    if (!validation.success) return validation.response;
+    const { name, steps, settings, prospectIds } = validation.data;
 
-    if (!body.name?.trim()) {
-      return NextResponse.json({ error: 'Campaign name is required' }, { status: 400 });
-    }
-
-    const campaignData: any = {
+    const campaignData: Record<string, unknown> = {
       userId,
-      name: body.name.trim(),
+      name,
       status: 'draft',
-      steps: body.steps || [],
-      settings: body.settings || { dailyLimit: 20, sendWindow: { start: 9, end: 17 } },
+      steps,
+      settings: settings || { dailyLimit: 20, sendWindow: { start: 9, end: 17 } },
       stats: { totalSent: 0, totalReplies: 0, totalMeetings: 0 },
     };
 
-    if (body.prospectIds?.length) {
-      campaignData.prospects = body.prospectIds.map((id: string) => ({
+    if (prospectIds?.length) {
+      campaignData.prospects = prospectIds.map((id) => ({
         prospectId: id,
         currentStep: 0,
         status: 'pending',
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
     const campaign = await Campaign.create(campaignData);
     return NextResponse.json({ campaign }, { status: 201 });
   } catch (error) {
-    console.error('POST /api/campaigns error:', error);
+    logger.error('POST /api/campaigns error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

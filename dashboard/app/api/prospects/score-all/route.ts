@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import { Prospect } from '@/models/Prospect';
 import { Settings } from '@/models/Settings';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,13 +60,13 @@ Return ONLY valid JSON: {"companyFit": N, "roleAuthority": N, "engagementSignals
         );
         scored++;
       } catch (err) {
-        console.error(`Failed to score prospect ${prospect._id}:`, err);
+        logger.error(`Failed to score prospect ${prospect._id}:`, err);
       }
     }
 
     return NextResponse.json({ scored, total: prospects.length });
   } catch (error) {
-    console.error('POST /api/prospects/score-all error:', error);
+    logger.error('POST /api/prospects/score-all error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

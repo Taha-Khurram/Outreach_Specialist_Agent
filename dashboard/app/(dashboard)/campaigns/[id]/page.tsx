@@ -84,7 +84,7 @@ export default function CampaignAnalyticsPage() {
       <div className="p-6 space-y-6">
         {/* Back + Title */}
         <div className="flex items-center gap-4">
-          <button onClick={() => router.push('/campaigns')} className="p-2 rounded-lg hover:bg-gray-100">
+          <button onClick={() => router.push('/campaigns')} aria-label="Back to campaigns" className="p-2 rounded-lg hover:bg-gray-100">
             <ArrowLeft className="h-5 w-5 text-gray-600" />
           </button>
           <div>

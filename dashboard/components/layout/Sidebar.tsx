@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  LayoutDashboard, Users, Mail, MessageSquare, LogOut, Zap, TrendingUp, Kanban,
+  LayoutDashboard, Users, Mail, MessageSquare, LogOut, Zap, Kanban,
 } from 'lucide-react';
 
 const navigation = [
@@ -35,7 +35,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+      <nav aria-label="Main navigation" className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {navigation.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           return (
@@ -64,6 +64,7 @@ export default function Sidebar() {
         <button
           onClick={handleLogout}
           className="sidebar-nav-item sidebar-nav-inactive w-full"
+          aria-label="Sign out"
         >
           <LogOut className="h-[18px] w-[18px]" />
           <span>Sign out</span>

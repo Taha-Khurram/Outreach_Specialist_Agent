@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { connectDB } from '@/lib/db';
 import { Prospect } from '@/models/Prospect';
 import { Settings } from '@/models/Settings';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -63,7 +64,7 @@ Return ONLY valid JSON: {"companyFit": N, "roleAuthority": N, "engagementSignals
 
     return NextResponse.json({ score, breakdown });
   } catch (error) {
-    console.error('POST /api/prospects/[id]/score error:', error);
+    logger.error('POST /api/prospects/[id]/score error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

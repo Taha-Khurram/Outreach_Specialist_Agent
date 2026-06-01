@@ -6,6 +6,7 @@ import { Interaction } from '@/models/Interaction';
 import { Settings } from '@/models/Settings';
 import { sendEmail } from '@/lib/gmail';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { logger } from '@/lib/logger';
 
 function renderTemplate(template: string, data: Record<string, any>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => data[key] || '');
@@ -209,7 +210,7 @@ export async function POST(req: NextRequest) {
           results.sent++;
           sentThisRun++;
         } catch (err: any) {
-          console.error(`Follow-up failed for ${prospect.email}:`, err.message);
+          logger.error(`Follow-up failed for ${prospect.email}:`, err.message);
           results.failed++;
         }
       }
@@ -230,7 +231,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(results);
   } catch (error) {
-    console.error('POST /api/campaigns/process error:', error);
+    logger.error('POST /api/campaigns/process error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

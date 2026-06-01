@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Prospect } from '@/models/Prospect';
+import { validateBody, prospectSchema } from '@/lib/validate';
 
 export async function GET(req: NextRequest) {
   try {
@@ -42,11 +43,13 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
     const body = await req.json();
+    const validation = validateBody(prospectSchema, body);
+    if (!validation.success) return validation.response;
 
-    const prospect = await Prospect.create({ ...body, userId });
+    const prospect = await Prospect.create({ ...validation.data, userId });
     return NextResponse.json({ prospect }, { status: 201 });
-  } catch (error: any) {
-    if (error.code === 11000) {
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && (error as { code: number }).code === 11000) {
       return NextResponse.json({ error: 'Prospect with this email already exists' }, { status: 409 });
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

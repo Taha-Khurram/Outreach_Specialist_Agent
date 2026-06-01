@@ -1,6 +1,15 @@
-const rateMap = new Map<string, { count: number; resetAt: number }>();
+const globalKey = Symbol.for('__rateLimitMap');
+
+function getMap(): Map<string, { count: number; resetAt: number }> {
+  const g = globalThis as any;
+  if (!g[globalKey]) {
+    g[globalKey] = new Map();
+  }
+  return g[globalKey];
+}
 
 export function checkRateLimit(key: string, maxRequests: number, windowMs: number): { allowed: boolean; remaining: number; resetIn: number } {
+  const rateMap = getMap();
   const now = Date.now();
   const entry = rateMap.get(key);
 
@@ -15,16 +24,4 @@ export function checkRateLimit(key: string, maxRequests: number, windowMs: numbe
 
   entry.count++;
   return { allowed: true, remaining: maxRequests - entry.count, resetIn: entry.resetAt - now };
-}
-
-if (typeof globalThis !== 'undefined' && !(globalThis as any).__rateLimitCleanup) {
-  (globalThis as any).__rateLimitCleanup = true;
-  if (typeof setInterval !== 'undefined') {
-    setInterval(() => {
-      const now = Date.now();
-      for (const [key, entry] of rateMap) {
-        if (now > entry.resetAt) rateMap.delete(key);
-      }
-    }, 60_000);
-  }
 }

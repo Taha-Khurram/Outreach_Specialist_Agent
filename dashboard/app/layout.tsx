@@ -5,7 +5,10 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'ClientFlow - AI-Powered Client Acquisition',
+  title: {
+    default: 'ClientFlow - AI-Powered Client Acquisition',
+    template: '%s | ClientFlow',
+  },
   description: 'Automate your outbound sales with AI. Find prospects, send personalized emails, and close deals.',
 };
 

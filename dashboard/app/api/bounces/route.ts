@@ -4,6 +4,7 @@ import { Settings } from '@/models/Settings';
 import { Prospect } from '@/models/Prospect';
 import { Campaign } from '@/models/Campaign';
 import { checkBounces } from '@/lib/gmail';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest) {
   try {
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ detected: bounces.length, updated });
   } catch (error) {
-    console.error('POST /api/bounces error:', error);
+    logger.error('POST /api/bounces error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

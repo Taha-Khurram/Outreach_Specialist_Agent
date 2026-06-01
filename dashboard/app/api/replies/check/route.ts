@@ -7,6 +7,7 @@ import { Campaign } from '@/models/Campaign';
 import { getUnreadReplies, markAsRead, replyToThread, sendEmail } from '@/lib/gmail';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 function extractEmail(from: string): string {
   const match = from.match(/<([^>]+)>/);
@@ -209,7 +210,7 @@ export async function POST(req: NextRequest) {
           await Interaction.updateOne({ _id: interaction._id }, { $set: { autoReplied: true } });
           results.autoReplied++;
         } catch (err: any) {
-          console.error(`Auto-reply failed for ${fromEmail}:`, err.message);
+          logger.error(`Auto-reply failed for ${fromEmail}:`, err.message);
         }
       }
 
@@ -220,7 +221,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(results);
   } catch (error) {
-    console.error('POST /api/replies/check error:', error);
+    logger.error('POST /api/replies/check error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

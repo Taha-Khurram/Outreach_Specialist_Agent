@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import { Interaction } from '@/models/Interaction';
 import { Settings } from '@/models/Settings';
 import { replyToThread } from '@/lib/gmail';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     return NextResponse.json({ success: true, messageId: result.messageId });
   } catch (error) {
-    console.error('POST /api/replies/[id]/reply error:', error);
+    logger.error('POST /api/replies/[id]/reply error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

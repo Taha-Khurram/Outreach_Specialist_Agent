@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/layout/Header';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { useToast } from '@/components/ui/Toast';
 import {
   MessageSquare, CheckCircle, XCircle, Clock, RefreshCw,
   Loader2, Send, X, Zap, Ban,
@@ -36,6 +37,7 @@ const classificationStyles: Record<string, { bg: string; text: string; label: st
 const filters = ['all', 'POSITIVE', 'NEUTRAL', 'NEGATIVE', 'UNSUBSCRIBE'];
 
 export default function RepliesPage() {
+  const { toast } = useToast();
   const [replies, setReplies] = useState<ReplyInteraction[]>([]);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
@@ -108,7 +110,7 @@ export default function RepliesPage() {
       setShowReplyModal(false);
       fetchReplies();
     } catch (err: any) {
-      alert(err.message);
+      toast('error', err.message);
     } finally {
       setSending(false);
     }
@@ -258,7 +260,7 @@ export default function RepliesPage() {
           <div className="relative bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Reply to {replyingTo.prospect?.firstName || 'Prospect'}</h2>
-              <button onClick={() => setShowReplyModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
+              <button onClick={() => setShowReplyModal(false)} aria-label="Close modal" className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
                 <X className="h-5 w-5" />
               </button>
             </div>

@@ -106,6 +106,7 @@ export default function Header({ title }: { title: string }) {
             <input
               type="text"
               placeholder="Search..."
+              aria-label="Search"
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
               className={`w-56 pl-9 pr-4 py-2 text-sm rounded-lg bg-gray-50 border transition-all duration-200 placeholder:text-gray-400 ${
@@ -119,6 +120,8 @@ export default function Header({ title }: { title: string }) {
             <button
               onClick={() => { setShowNotifications(!showNotifications); setShowProfile(false); }}
               className="relative p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+              aria-expanded={showNotifications}
             >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
@@ -139,7 +142,7 @@ export default function Header({ title }: { title: string }) {
                         Mark all read
                       </button>
                     )}
-                    <button onClick={() => setShowNotifications(false)} className="p-1 rounded text-gray-400 hover:text-gray-600">
+                    <button onClick={() => setShowNotifications(false)} className="p-1 rounded text-gray-400 hover:text-gray-600" aria-label="Close notifications">
                       <X className="h-4 w-4" />
                     </button>
                   </div>
@@ -183,6 +186,8 @@ export default function Header({ title }: { title: string }) {
             <button
               onClick={() => { setShowProfile(!showProfile); setShowNotifications(false); }}
               className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="User menu"
+              aria-expanded={showProfile}
             >
               <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#468faf] to-[#014f86] flex items-center justify-center">
                 <span className="text-xs font-semibold text-white">{initials}</span>

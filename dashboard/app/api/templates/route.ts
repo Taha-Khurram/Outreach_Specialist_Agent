@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Template } from '@/models/Template';
+import { validateBody, templateSchema } from '@/lib/validate';
+import { logger } from '@/lib/logger';
 
 const DEFAULT_TEMPLATES = [
   {
@@ -179,7 +181,7 @@ export async function GET(req: NextRequest) {
     const templates = await Template.find({ userId }).sort({ isDefault: -1, usageCount: -1 }).lean();
     return NextResponse.json({ templates });
   } catch (error) {
-    console.error('GET /api/templates error:', error);
+    logger.error('GET /api/templates error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -190,7 +192,9 @@ export async function POST(req: NextRequest) {
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { name, description, category, steps } = body;
+    const validation = validateBody(templateSchema, body);
+    if (!validation.success) return validation.response;
+    const { name, description, category, steps } = validation.data;
 
     if (!name || !steps?.length) {
       return NextResponse.json({ error: 'Name and at least one step required' }, { status: 400 });
@@ -215,7 +219,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ template }, { status: 201 });
   } catch (error) {
-    console.error('POST /api/templates error:', error);
+    logger.error('POST /api/templates error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { connectDB } from '@/lib/db';
 import { Prospect } from '@/models/Prospect';
 import { Settings } from '@/models/Settings';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -57,7 +58,7 @@ Return ONLY valid JSON: {"summary": "...", "painPoints": ["..."], "talkingPoints
 
     return NextResponse.json({ research });
   } catch (error) {
-    console.error('POST /api/prospects/[id]/research error:', error);
+    logger.error('POST /api/prospects/[id]/research error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

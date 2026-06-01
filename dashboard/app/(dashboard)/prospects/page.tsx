@@ -6,6 +6,8 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { StatusBadge } from '@/components/ui/Badge';
 import { DiscoverButton } from '@/components/ui/DiscoverButton';
 import ScoreBadge from '@/components/ui/ScoreBadge';
+import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { Users, Plus, Search, Edit2, Trash2, X, Loader2, Sparkles, FlaskConical } from 'lucide-react';
 
 interface Prospect {
@@ -37,6 +39,8 @@ const emptyForm = {
 };
 
 export default function ProspectsPage() {
+  const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -121,12 +125,13 @@ export default function ProspectsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this prospect? This cannot be undone.')) return;
+    const ok = await confirm({ title: 'Delete Prospect', message: 'Delete this prospect? This cannot be undone.', variant: 'danger', confirmLabel: 'Delete' });
+    if (!ok) return;
     try {
       const res = await fetch(`/api/prospects/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error();
       fetchProspects();
-    } catch { alert('Failed to delete prospect.'); }
+    } catch { toast('error', 'Failed to delete prospect'); }
   }
 
   async function handleScoreAll() {
@@ -247,10 +252,10 @@ export default function ProspectsPage() {
                           className="p-1.5 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors">
                           <FlaskConical className="h-4 w-4" />
                         </button>
-                        <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-colors">
+                        <button onClick={() => openEdit(p)} aria-label="Edit prospect" className="p-1.5 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-colors">
                           <Edit2 className="h-4 w-4" />
                         </button>
-                        <button onClick={() => handleDelete(p._id)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                        <button onClick={() => handleDelete(p._id)} aria-label="Delete prospect" className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
@@ -270,7 +275,7 @@ export default function ProspectsPage() {
           <div className="relative bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">{editingId ? 'Edit Prospect' : 'Add Prospect'}</h2>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100"><X className="h-5 w-5" /></button>
+              <button onClick={() => setShowModal(false)} aria-label="Close modal" className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100"><X className="h-5 w-5" /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">{error}</div>}
@@ -312,7 +317,7 @@ export default function ProspectsPage() {
                 <h2 className="text-lg font-semibold text-gray-900">AI Research: {researchProspect.company}</h2>
                 <p className="text-sm text-gray-500">{researchProspect.firstName} {researchProspect.lastName} · {researchProspect.title}</p>
               </div>
-              <button onClick={() => setResearchProspect(null)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100"><X className="h-5 w-5" /></button>
+              <button onClick={() => setResearchProspect(null)} aria-label="Close research panel" className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100"><X className="h-5 w-5" /></button>
             </div>
             <div className="p-6">
               {researching ? (

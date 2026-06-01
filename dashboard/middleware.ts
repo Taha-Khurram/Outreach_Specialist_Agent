@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this'
-);
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 async function verifyTokenEdge(token: string) {
   try {
@@ -30,7 +32,24 @@ export async function middleware(request: NextRequest) {
   }
 
   if (publicPaths.some(p => pathname.startsWith(p))) {
-    // If already logged in, redirect away from auth pages
+    if (pathname.startsWith('/api/auth/')) {
+      const method = request.method;
+      if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+        const origin = request.headers.get('origin');
+        const host = request.headers.get('host');
+        if (origin) {
+          try {
+            const originHost = new URL(origin).host;
+            if (originHost !== host) {
+              return NextResponse.json({ error: 'CSRF: origin mismatch' }, { status: 403 });
+            }
+          } catch {
+            return NextResponse.json({ error: 'CSRF: invalid origin' }, { status: 403 });
+          }
+        }
+      }
+    }
+
     const token = request.cookies.get('token')?.value;
     if (token && (pathname === '/login' || pathname === '/signup')) {
       const session = await verifyTokenEdge(token);
@@ -51,6 +70,23 @@ export async function middleware(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const method = request.method;
+    if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+      const origin = request.headers.get('origin');
+      const host = request.headers.get('host');
+      if (origin) {
+        try {
+          const originHost = new URL(origin).host;
+          if (originHost !== host) {
+            return NextResponse.json({ error: 'CSRF: origin mismatch' }, { status: 403 });
+          }
+        } catch {
+          return NextResponse.json({ error: 'CSRF: invalid origin' }, { status: 403 });
+        }
+      }
+    }
+
     const headers = new Headers(request.headers);
     headers.set('x-user-id', session.userId);
     return NextResponse.next({ request: { headers } });

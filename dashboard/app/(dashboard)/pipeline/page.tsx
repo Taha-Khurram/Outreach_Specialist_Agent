@@ -85,6 +85,8 @@ export default function PipelinePage() {
 
   async function handleCloseDeal() {
     if (!dealProspect || !dealValue) return;
+    const numValue = Number(dealValue);
+    if (isNaN(numValue) || numValue < 0) return;
     setDealSaving(true);
     try {
       const res = await fetch('/api/deals', {
@@ -242,7 +244,7 @@ export default function PipelinePage() {
           <div className="relative bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md mx-4">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Close Deal</h2>
-              <button onClick={() => setShowDealModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
+              <button onClick={() => setShowDealModal(false)} aria-label="Close modal" className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
                 <X className="h-5 w-5" />
               </button>
             </div>

@@ -2,24 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { hashPassword, generateToken } from '@/lib/auth';
 import { User } from '@/models/User';
+import { validateBody, signupSchema } from '@/lib/validate';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password, company } = await req.json();
-
-    if (!name || !email || !password) {
-      return NextResponse.json(
-        { error: 'Name, email, and password are required' },
-        { status: 400 }
-      );
-    }
-
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: 'Password must be at least 8 characters' },
-        { status: 400 }
-      );
-    }
+    const body = await req.json();
+    const validation = validateBody(signupSchema, body);
+    if (!validation.success) return validation.response;
+    const { name, email, password, company } = validation.data;
 
     await connectDB();
 
@@ -55,8 +46,8 @@ export async function POST(req: NextRequest) {
     });
 
     return response;
-  } catch (error: any) {
-    console.error('Signup error:', error);
+  } catch (error) {
+    logger.error('Signup error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

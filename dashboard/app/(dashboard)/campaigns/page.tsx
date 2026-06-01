@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatusBadge } from '@/components/ui/Badge';
+import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import {
   Mail, Plus, Edit2, Trash2, X, Loader2, Play, Pause, BarChart3, FileText,
 } from 'lucide-react';
@@ -37,6 +39,8 @@ interface ProspectOption {
 }
 
 export default function CampaignsPage() {
+  const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -184,7 +188,8 @@ export default function CampaignsPage() {
   }
 
   async function handleLaunch(id: string) {
-    if (!confirm('Launch this campaign? Emails will be sent to all assigned prospects.')) return;
+    const ok = await confirm({ title: 'Launch Campaign', message: 'Launch this campaign? Emails will be sent to all assigned prospects.', confirmLabel: 'Launch' });
+    if (!ok) return;
     setLaunching(id);
     setSuccessMsg('');
     try {
@@ -194,7 +199,7 @@ export default function CampaignsPage() {
       setSuccessMsg(`Campaign launched! ${data.sent} emails sent, ${data.failed} failed.`);
       fetchCampaigns();
     } catch (err: any) {
-      alert(err.message);
+      toast('error', err.message);
     } finally {
       setLaunching(null);
     }
@@ -206,12 +211,13 @@ export default function CampaignsPage() {
       if (!res.ok) throw new Error();
       fetchCampaigns();
     } catch {
-      alert('Failed to pause campaign');
+      toast('error', 'Failed to pause campaign');
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this campaign? This cannot be undone.')) return;
+    const ok = await confirm({ title: 'Delete Campaign', message: 'Delete this campaign? This cannot be undone.', variant: 'danger', confirmLabel: 'Delete' });
+    if (!ok) return;
     try {
       const res = await fetch(`/api/campaigns/${id}`, { method: 'DELETE' });
       if (!res.ok) {
@@ -220,7 +226,7 @@ export default function CampaignsPage() {
       }
       fetchCampaigns();
     } catch (err: any) {
-      alert(err.message || 'Failed to delete');
+      toast('error', err.message || 'Failed to delete');
     }
   }
 
@@ -330,7 +336,7 @@ export default function CampaignsPage() {
               <h2 className="text-lg font-semibold text-gray-900">
                 {editingId ? 'Edit Campaign' : 'New Campaign'}
               </h2>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
+              <button onClick={() => setShowModal(false)} aria-label="Close modal" className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -398,7 +404,7 @@ export default function CampaignsPage() {
                             </div>
                           )}
                           {steps.length > 1 && (
-                            <button type="button" onClick={() => removeStep(i)} className="text-gray-400 hover:text-red-500">
+                            <button type="button" onClick={() => removeStep(i)} aria-label="Remove step" className="text-gray-400 hover:text-red-500">
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           )}

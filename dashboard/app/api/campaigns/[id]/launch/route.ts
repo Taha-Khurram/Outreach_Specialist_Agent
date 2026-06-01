@@ -8,6 +8,7 @@ import { Settings } from '@/models/Settings';
 import { sendEmail } from '@/lib/gmail';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 function renderTemplate(template: string, data: Record<string, any>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => data[key] || '');
@@ -199,7 +200,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
         sent++;
       } catch (err: any) {
-        console.error(`Failed to send to ${prospect.email}:`, err.message);
+        logger.error(`Failed to send to ${prospect.email}:`, err.message);
         failed++;
       }
     }
@@ -210,7 +211,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     return NextResponse.json({ sent, failed, total: campaign.prospects.length });
   } catch (error) {
-    console.error('POST /api/campaigns/[id]/launch error:', error);
+    logger.error('POST /api/campaigns/[id]/launch error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

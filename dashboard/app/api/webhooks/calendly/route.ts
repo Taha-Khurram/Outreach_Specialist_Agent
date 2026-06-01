@@ -5,6 +5,7 @@ import { Interaction } from '@/models/Interaction';
 import { Campaign } from '@/models/Campaign';
 import { Settings } from '@/models/Settings';
 import { sendEmail } from '@/lib/gmail';
+import { logger } from '@/lib/logger';
 
 const CALENDLY_WEBHOOK_SECRET = process.env.CALENDLY_WEBHOOK_SECRET || '';
 
@@ -91,14 +92,14 @@ export async function POST(req: NextRequest) {
             ...gmailAuth,
           });
         } catch (err: any) {
-          console.error('Failed to send meeting notification:', err.message);
+          logger.error('Failed to send meeting notification:', err.message);
         }
       }
     }
 
     return NextResponse.json({ received: true, matched: true, prospectId: prospect._id });
   } catch (error) {
-    console.error('POST /api/webhooks/calendly error:', error);
+    logger.error('POST /api/webhooks/calendly error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { Campaign } from '@/models/Campaign';
 import { Prospect } from '@/models/Prospect';
+import { logger } from '@/lib/logger';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     return NextResponse.json({ campaign });
   } catch (error) {
-    console.error('GET /api/campaigns/[id] error:', error);
+    logger.error('GET /api/campaigns/[id] error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -84,7 +85,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     return NextResponse.json({ campaign });
   } catch (error) {
-    console.error('PUT /api/campaigns/[id] error:', error);
+    logger.error('PUT /api/campaigns/[id] error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -113,7 +114,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     await Campaign.findOneAndDelete({ _id: id, userId });
     return NextResponse.json({ message: 'Campaign deleted' });
   } catch (error) {
-    console.error('DELETE /api/campaigns/[id] error:', error);
+    logger.error('DELETE /api/campaigns/[id] error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

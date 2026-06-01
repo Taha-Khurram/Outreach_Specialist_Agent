@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { Deal } from '@/models/Deal';
 import { Prospect } from '@/models/Prospect';
 import { Interaction } from '@/models/Interaction';
+import { validateBody, dealSchema } from '@/lib/validate';
+import { logger } from '@/lib/logger';
 
 export async function GET(req: NextRequest) {
   try {
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
       summary: { totalRevenue, totalDeals, goal: 2 },
     });
   } catch (error) {
-    console.error('GET /api/deals error:', error);
+    logger.error('GET /api/deals error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -42,15 +43,9 @@ export async function POST(req: NextRequest) {
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { prospectId, value, status, notes, services, campaignId } = body;
-
-    if (!prospectId || value == null) {
-      return NextResponse.json({ error: 'prospectId and value are required' }, { status: 400 });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(prospectId)) {
-      return NextResponse.json({ error: 'Invalid prospect ID' }, { status: 400 });
-    }
+    const validation = validateBody(dealSchema, body);
+    if (!validation.success) return validation.response;
+    const { prospectId, value, status, notes, services, campaignId } = validation.data;
 
     await connectDB();
 
@@ -81,7 +76,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ deal }, { status: 201 });
   } catch (error) {
-    console.error('POST /api/deals error:', error);
+    logger.error('POST /api/deals error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

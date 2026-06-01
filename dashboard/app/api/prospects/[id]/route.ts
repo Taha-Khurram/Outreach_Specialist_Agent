@@ -54,8 +54,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     if (!prospect) return NextResponse.json({ error: 'Prospect not found' }, { status: 404 });
     return NextResponse.json({ prospect });
-  } catch (error: any) {
-    if (error.code === 11000) {
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && (error as { code: number }).code === 11000) {
       return NextResponse.json({ error: 'A prospect with this email already exists' }, { status: 409 });
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

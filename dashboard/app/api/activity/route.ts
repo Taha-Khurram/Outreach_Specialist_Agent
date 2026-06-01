@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Interaction } from '@/models/Interaction';
 import { Prospect } from '@/models/Prospect';
+import { logger } from '@/lib/logger';
 
 export async function GET(req: NextRequest) {
   try {
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ activities });
   } catch (error) {
-    console.error('GET /api/activity error:', error);
+    logger.error('GET /api/activity error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

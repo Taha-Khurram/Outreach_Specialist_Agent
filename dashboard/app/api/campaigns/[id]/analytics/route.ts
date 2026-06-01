@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { Campaign } from '@/models/Campaign';
 import { Interaction } from '@/models/Interaction';
+import { logger } from '@/lib/logger';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -110,7 +111,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       timeline,
     });
   } catch (error) {
-    console.error('GET /api/campaigns/[id]/analytics error:', error);
+    logger.error('GET /api/campaigns/[id]/analytics error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

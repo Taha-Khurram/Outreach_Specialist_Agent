@@ -63,13 +63,14 @@ export default function SettingsPage() {
       const res = await fetch('/api/settings');
       if (!res.ok) throw new Error('Failed to load settings');
       const data = await res.json();
+      const s = data.settings || {};
       setSettings({
-        apiKeys: data.settings.apiKeys || defaultSettings.apiKeys,
-        email: data.settings.email || defaultSettings.email,
-        ai: data.settings.ai || defaultSettings.ai,
-        targeting: data.settings.targeting || defaultSettings.targeting,
-        schedule: data.settings.schedule || defaultSettings.schedule,
-        goals: data.settings.goals || defaultSettings.goals,
+        apiKeys: { ...defaultSettings.apiKeys, ...s.apiKeys },
+        email: { ...defaultSettings.email, ...s.email },
+        ai: { ...defaultSettings.ai, ...s.ai },
+        targeting: { ...defaultSettings.targeting, ...s.targeting },
+        schedule: { ...defaultSettings.schedule, ...s.schedule },
+        goals: { ...defaultSettings.goals, ...s.goals },
       });
     } catch {
       setMessage({ type: 'error', text: 'Failed to load settings. Using defaults.' });
@@ -82,14 +83,38 @@ export default function SettingsPage() {
     setSaving(true);
     setMessage(null);
     try {
+      const payload = {
+        ...settings,
+        email: {
+          ...settings.email,
+          senderEmail: settings.email.senderEmail.trim(),
+          calendlyLink: settings.email.calendlyLink.trim(),
+          dailySendLimit: settings.email.dailySendLimit || 50,
+        },
+        ai: {
+          ...settings.ai,
+          confidenceThreshold: settings.ai.confidenceThreshold || 0.8,
+        },
+        schedule: {
+          ...settings.schedule,
+          replyCheckInterval: settings.schedule.replyCheckInterval || 5,
+        },
+        goals: {
+          ...settings.goals,
+          monthlyDealTarget: settings.goals.monthlyDealTarget || 2,
+        },
+      };
       const res = await fetch('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
       });
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to save settings');
+        const detail = data.details
+          ? Object.entries(data.details).map(([k, v]) => `${k}: ${(v as string[]).join(', ')}`).join('; ')
+          : '';
+        throw new Error(detail || data.error || 'Failed to save settings');
       }
       setMessage({ type: 'success', text: 'Settings saved successfully.' });
       setTimeout(() => setMessage(null), 4000);

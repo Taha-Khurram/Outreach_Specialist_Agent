@@ -31,6 +31,9 @@ export const signupSchema = z.object({
   company: sanitizedString.pipe(z.string().max(200)).optional().default(''),
 });
 
+const coercePositiveInt = (min: number, max: number, fallback: number) =>
+  z.union([z.number(), z.nan()]).transform(v => (Number.isFinite(v) && v >= min ? Math.min(Math.round(v), max) : fallback));
+
 export const settingsSchema = z.object({
   apiKeys: z.object({
     apolloApiKey: z.string().max(500),
@@ -40,12 +43,12 @@ export const settingsSchema = z.object({
   email: z.object({
     senderEmail: z.string().email().or(z.literal('')).optional(),
     senderName: sanitizedString.pipe(z.string().max(100)).optional(),
-    dailySendLimit: z.number().int().min(1).max(500).optional(),
+    dailySendLimit: coercePositiveInt(1, 500, 50).optional(),
     calendlyLink: z.string().url().or(z.literal('')).optional(),
   }).partial().optional(),
   ai: z.object({
     model: z.string().max(50).optional(),
-    confidenceThreshold: z.number().min(0.5).max(1).optional(),
+    confidenceThreshold: z.union([z.number(), z.nan()]).transform(v => Number.isFinite(v) ? Math.max(0.5, Math.min(v, 1)) : 0.8).optional(),
     autoReplyPositive: z.boolean().optional(),
     autoUnsubscribe: z.boolean().optional(),
   }).partial().optional(),
@@ -58,11 +61,11 @@ export const settingsSchema = z.object({
   schedule: z.object({
     discoveryTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
     emailSendTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
-    replyCheckInterval: z.number().int().min(1).max(60).optional(),
+    replyCheckInterval: coercePositiveInt(1, 60, 5).optional(),
     reportTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
   }).partial().optional(),
   goals: z.object({
-    monthlyDealTarget: z.number().int().min(1).max(100).optional(),
+    monthlyDealTarget: coercePositiveInt(1, 100, 2).optional(),
   }).partial().optional(),
 });
 

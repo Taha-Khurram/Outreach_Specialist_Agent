@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, Search, User, Settings, LogOut, ChevronDown, X, CheckCircle, Mail, MessageSquare, DollarSign } from 'lucide-react';
+import { Bell, Search, User, Settings, ChevronDown, X, CheckCircle, Mail, MessageSquare, DollarSign } from 'lucide-react';
 
 interface UserData {
   name: string;
@@ -97,12 +97,6 @@ export default function Header({ title }: { title: string }) {
 
   function markRead(id: string) {
     setReadIds(prev => new Set(prev).add(id));
-  }
-
-  async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
-    router.refresh();
   }
 
   function getNotifIcon(type: string) {
@@ -243,15 +237,6 @@ export default function Header({ title }: { title: string }) {
                   >
                     <User className="h-4 w-4 text-gray-400" />
                     Profile
-                  </button>
-                </div>
-                <div className="border-t border-gray-100 py-1">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign out
                   </button>
                 </div>
               </div>

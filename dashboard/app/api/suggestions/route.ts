@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { connectDB } from '@/lib/db';
 import { Prospect } from '@/models/Prospect';
 import { Interaction } from '@/models/Interaction';
-import { Settings } from '@/models/Settings';
+import { getDecryptedSettings } from '@/lib/settings';
 import { logger } from '@/lib/logger';
 
 export async function GET(req: NextRequest) {
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
     await connectDB();
 
-    const settings: any = await Settings.findOne({ userId }).lean();
+    const settings: any = await getDecryptedSettings(userId);
     const geminiKey = settings?.apiKeys?.geminiApiKey || process.env.GEMINI_API_KEY;
 
     const prospects = await Prospect.find({

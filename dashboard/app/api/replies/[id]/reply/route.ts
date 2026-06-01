@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { Interaction } from '@/models/Interaction';
-import { Settings } from '@/models/Settings';
+import { getDecryptedSettings } from '@/lib/settings';
 import { replyToThread } from '@/lib/gmail';
 import { logger } from '@/lib/logger';
 
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Interaction not found' }, { status: 404 });
     }
 
-    const settings: any = await Settings.findOne({ userId }).lean();
+    const settings: any = await getDecryptedSettings(userId);
     if (!settings) {
       return NextResponse.json({ error: 'Settings not configured' }, { status: 400 });
     }

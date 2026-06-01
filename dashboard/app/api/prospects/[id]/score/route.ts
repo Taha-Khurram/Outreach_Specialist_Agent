@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { connectDB } from '@/lib/db';
 import { Prospect } from '@/models/Prospect';
-import { Settings } from '@/models/Settings';
+import { getDecryptedSettings } from '@/lib/settings';
 import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const prospect: any = await Prospect.findOne({ _id: id, userId }).lean();
     if (!prospect) return NextResponse.json({ error: 'Prospect not found' }, { status: 404 });
 
-    const settings: any = await Settings.findOne({ userId }).lean();
+    const settings: any = await getDecryptedSettings(userId);
     const geminiKey = settings?.apiKeys?.geminiApiKey || process.env.GEMINI_API_KEY;
     if (!geminiKey) return NextResponse.json({ error: 'Gemini API key not configured' }, { status: 400 });
 

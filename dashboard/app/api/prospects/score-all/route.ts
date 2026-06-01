@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { connectDB } from '@/lib/db';
 import { Prospect } from '@/models/Prospect';
-import { Settings } from '@/models/Settings';
+import { getDecryptedSettings } from '@/lib/settings';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    const settings: any = await Settings.findOne({ userId }).lean();
+    const settings: any = await getDecryptedSettings(userId);
     const geminiKey = settings?.apiKeys?.geminiApiKey || process.env.GEMINI_API_KEY;
     if (!geminiKey) return NextResponse.json({ error: 'Gemini API key not configured' }, { status: 400 });
 

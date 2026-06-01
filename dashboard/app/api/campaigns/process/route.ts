@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/db';
 import { Campaign } from '@/models/Campaign';
 import { Prospect } from '@/models/Prospect';
 import { Interaction } from '@/models/Interaction';
-import { Settings } from '@/models/Settings';
+import { getDecryptedSettings } from '@/lib/settings';
 import { sendEmail } from '@/lib/gmail';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { logger } from '@/lib/logger';
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    const settings: any = await Settings.findOne({ userId }).lean();
+    const settings: any = await getDecryptedSettings(userId);
     if (!settings) {
       return NextResponse.json({ error: 'Settings not configured' }, { status: 400 });
     }

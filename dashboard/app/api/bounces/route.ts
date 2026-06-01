@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
-import { Settings } from '@/models/Settings';
+import { getDecryptedSettings } from '@/lib/settings';
 import { Prospect } from '@/models/Prospect';
 import { Campaign } from '@/models/Campaign';
 import { checkBounces } from '@/lib/gmail';
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    const settings: any = await Settings.findOne({ userId }).lean();
+    const settings: any = await getDecryptedSettings(userId);
     if (!settings) {
       return NextResponse.json({ error: 'Settings not configured' }, { status: 400 });
     }

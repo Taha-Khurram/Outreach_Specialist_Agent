@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/db';
 import { Prospect } from '@/models/Prospect';
 import { Interaction } from '@/models/Interaction';
 import { Campaign } from '@/models/Campaign';
-import { Settings } from '@/models/Settings';
+import { getDecryptedSettings } from '@/lib/settings';
 import { sendEmail } from '@/lib/gmail';
 import { logger } from '@/lib/logger';
 
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    const settings: any = await Settings.findOne({ userId }).lean();
+    const settings: any = await getDecryptedSettings(userId);
     if (settings?.email?.senderEmail) {
       const gmailAuth = {
         clientId: settings.apiKeys?.googleClientId || process.env.GOOGLE_CLIENT_ID || '',

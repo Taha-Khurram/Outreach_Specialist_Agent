@@ -62,11 +62,12 @@ export default function DashboardPage() {
   async function fetchData() {
     setLoading(true);
     try {
-      const [statsRes, activityRes, suggestionsRes, dealsRes] = await Promise.all([
+      const [statsRes, activityRes, suggestionsRes, dealsRes, settingsRes] = await Promise.all([
         fetch('/api/stats'),
         fetch('/api/activity?limit=10'),
         fetch('/api/suggestions'),
         fetch('/api/deals'),
+        fetch('/api/settings'),
       ]);
       if (statsRes.ok) setStats(await statsRes.json());
       if (activityRes.ok) {
@@ -78,9 +79,15 @@ export default function DashboardPage() {
         setSuggestions(data.suggestions || []);
         setAiInsight(data.aiInsight || '');
       }
+      const goalFromSettings = settingsRes.ok
+        ? (await settingsRes.json()).settings?.goals?.monthlyDealTarget ?? 2
+        : 2;
       if (dealsRes.ok) {
         const data = await dealsRes.json();
-        setDeals(data.summary || { totalRevenue: 0, totalDeals: 0, goal: 2 });
+        setDeals(data.summary || { totalRevenue: 0, totalDeals: 0, goal: goalFromSettings });
+        if (data.summary && !data.summary.goal) {
+          setDeals(prev => ({ ...prev, goal: goalFromSettings }));
+        }
       }
     } catch {} finally {
       setLoading(false);

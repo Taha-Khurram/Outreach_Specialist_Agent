@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Header from '@/components/layout/Header';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatusBadge } from '@/components/ui/Badge';
@@ -76,17 +76,20 @@ export default function ProspectsPage() {
 
   useEffect(() => { fetchProspects(); }, [fetchProspects]);
 
-  let filtered = searchQuery
-    ? prospects.filter(p => {
-        const q = searchQuery.toLowerCase();
-        return p.firstName.toLowerCase().includes(q) || p.lastName.toLowerCase().includes(q) ||
-          p.email.toLowerCase().includes(q) || p.company.toLowerCase().includes(q);
-      })
-    : prospects;
+  const filtered = useMemo(() => {
+    let result = searchQuery
+      ? prospects.filter(p => {
+          const q = searchQuery.toLowerCase();
+          return p.firstName.toLowerCase().includes(q) || p.lastName.toLowerCase().includes(q) ||
+            p.email.toLowerCase().includes(q) || p.company.toLowerCase().includes(q);
+        })
+      : prospects;
 
-  if (sortByScore) {
-    filtered = [...filtered].sort((a, b) => (b.score || 0) - (a.score || 0));
-  }
+    if (sortByScore) {
+      result = [...result].sort((a, b) => (b.score || 0) - (a.score || 0));
+    }
+    return result;
+  }, [prospects, searchQuery, sortByScore]);
 
   function openAdd() {
     setEditingId(null); setForm(emptyForm); setError(''); setShowModal(true);

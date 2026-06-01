@@ -61,6 +61,9 @@ export const settingsSchema = z.object({
     replyCheckInterval: z.number().int().min(1).max(60).optional(),
     reportTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
   }).partial().optional(),
+  goals: z.object({
+    monthlyDealTarget: z.number().int().min(1).max(100).optional(),
+  }).partial().optional(),
 });
 
 export const prospectSchema = z.object({

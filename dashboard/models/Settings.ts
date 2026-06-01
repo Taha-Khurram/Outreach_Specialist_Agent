@@ -31,6 +31,9 @@ export interface ISettings extends Document {
     replyCheckInterval: number;
     reportTime: string;
   };
+  goals: {
+    monthlyDealTarget: number;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -66,6 +69,9 @@ const SettingsSchema = new Schema<ISettings>(
       emailSendTime: { type: String, default: '10:00' },
       replyCheckInterval: { type: Number, default: 5 },
       reportTime: { type: String, default: '18:00' },
+    },
+    goals: {
+      monthlyDealTarget: { type: Number, default: 2 },
     },
   },
   { timestamps: true }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Header from '@/components/layout/Header';
 import ScoreBadge from '@/components/ui/ScoreBadge';
 import {
@@ -45,7 +45,7 @@ export default function PipelinePage() {
 
   async function fetchProspects() {
     try {
-      const res = await fetch('/api/prospects?limit=500');
+      const res = await fetch('/api/prospects?limit=200');
       if (res.ok) {
         const data = await res.json();
         setProspects(data.prospects || []);
@@ -123,14 +123,14 @@ export default function PipelinePage() {
     }
   }
 
-  const grouped = STAGES.reduce((acc, stage) => {
+  const grouped = useMemo(() => STAGES.reduce((acc, stage) => {
     acc[stage.key] = prospects
       .filter(p => p.status === stage.key)
       .sort((a, b) => (b.score || 0) - (a.score || 0));
     return acc;
-  }, {} as Record<string, Prospect[]>);
+  }, {} as Record<string, Prospect[]>), [prospects]);
 
-  const totalInPipeline = prospects.filter(p => !['unsubscribed', 'bounced'].includes(p.status)).length;
+  const totalInPipeline = useMemo(() => prospects.filter(p => !['unsubscribed', 'bounced'].includes(p.status)).length, [prospects]);
   const conversionRate = totalInPipeline > 0
     ? ((grouped['closed']?.length || 0) / totalInPipeline * 100).toFixed(1)
     : '0';

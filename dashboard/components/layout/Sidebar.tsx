@@ -59,7 +59,7 @@ export default function Sidebar() {
             <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse-slow" />
             <span className="text-xs font-medium text-white/80">Agent Active</span>
           </div>
-          <p className="mt-1 text-[11px] text-white/40 pl-4">Next check in 3 min</p>
+          <p className="mt-1 text-[11px] text-white/40 pl-4">Monitoring prospects</p>
         </div>
         <button
           onClick={handleLogout}

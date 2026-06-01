@@ -65,7 +65,7 @@ export async function PUT(req: NextRequest) {
     await connectDB();
 
     const updateFields: Record<string, any> = {};
-    const allowedSections = ['apiKeys', 'email', 'ai', 'targeting', 'schedule'] as const;
+    const allowedSections = ['apiKeys', 'email', 'ai', 'targeting', 'schedule', 'goals'] as const;
 
     for (const section of allowedSections) {
       if (validated[section]) {

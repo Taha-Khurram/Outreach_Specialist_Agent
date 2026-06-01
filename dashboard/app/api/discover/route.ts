@@ -46,14 +46,40 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Apollo API key not configured. Add it in Settings → API Keys.' }, { status: 400 });
     }
 
-    const targeting = settings.targeting || {};
-    const searchBody = {
-      person_titles: targeting.titles?.length ? targeting.titles : ['CEO', 'CTO', 'VP Engineering', 'Founder'],
-      organization_industry_tag_ids: targeting.industries?.length ? targeting.industries : ['SaaS', 'Technology'],
-      organization_num_employees_ranges: parseCompanySize(targeting.companySize || '10-200 employees'),
-      person_locations: targeting.location ? [targeting.location] : ['United States'],
-      per_page: 50,
+    const body = await req.json().catch(() => ({}));
+    const mode = body.mode || 'auto';
+
+    const targeting = body.targeting || settings.targeting || {};
+    const page = body.page || 1;
+    const perPage = Math.min(body.perPage || 25, 100);
+
+    const searchBody: Record<string, any> = {
+      page,
+      per_page: perPage,
     };
+
+    if (targeting.titles?.length) {
+      searchBody.person_titles = targeting.titles;
+    }
+    if (targeting.location) {
+      searchBody.person_locations = Array.isArray(targeting.location) ? targeting.location : [targeting.location];
+    }
+    if (targeting.companySize) {
+      searchBody.organization_num_employees_ranges = parseCompanySize(targeting.companySize);
+    }
+    if (targeting.industries?.length) {
+      searchBody.q_organization_keyword_tags = targeting.industries;
+    }
+    if (targeting.keywords) {
+      searchBody.q_keywords = targeting.keywords;
+    }
+    if (targeting.domains?.length) {
+      const domainList = Array.isArray(targeting.domains) ? targeting.domains : [targeting.domains];
+      searchBody.q_organization_domains = domainList.join('\n');
+    }
+    if (targeting.companyName) {
+      searchBody.q_organization_name = targeting.companyName;
+    }
 
     const apolloRes = await fetch('https://api.apollo.io/v1/mixed_people/search', {
       method: 'POST',
@@ -68,6 +94,12 @@ export async function POST(req: NextRequest) {
     if (!apolloRes.ok) {
       const text = await apolloRes.text();
       logger.error('Apollo API error', undefined, { status: apolloRes.status, body: text });
+      if (apolloRes.status === 401 || apolloRes.status === 403) {
+        return NextResponse.json({ error: 'Invalid Apollo API key. Check Settings → API Keys.' }, { status: 401 });
+      }
+      if (apolloRes.status === 429) {
+        return NextResponse.json({ error: 'Apollo rate limit reached. Try again in a few minutes.' }, { status: 429 });
+      }
       return NextResponse.json(
         { error: `Apollo API returned ${apolloRes.status}. Check your API key and try again.` },
         { status: 502 }
@@ -76,11 +108,28 @@ export async function POST(req: NextRequest) {
 
     const data = await apolloRes.json();
     const people = data.people || [];
+    const totalResults = data.pagination?.total_entries || people.length;
+    const totalPages = data.pagination?.total_pages || 1;
+
+    // Search mode: return results for preview without importing
+    if (mode === 'search') {
+      const results = people.map(mapPerson);
+      return NextResponse.json({
+        results,
+        pagination: { page, perPage, total: totalResults, totalPages },
+      });
+    }
+
+    // Import mode: import selected or all
+    const selectedIds = body.selectedIds as string[] | undefined;
+    const toImport = selectedIds
+      ? people.filter((p: any) => selectedIds.includes(p.id))
+      : people;
 
     let created = 0;
     let skipped = 0;
 
-    for (const person of people) {
+    for (const person of toImport) {
       const mapped = mapPerson(person);
       if (!mapped.email || !mapped.firstName || !mapped.company) {
         skipped++;
@@ -101,7 +150,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      discovered: people.length,
+      discovered: toImport.length,
       created,
       skipped,
     });
